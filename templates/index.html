@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Papers' Scrapper - Work in Progress</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/style.css') }}">
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <h1>Hello World!</h1>
+    <h2>This is a Flask App meant to scrap working papers from the Web</h2>
+
+
+</br>
+
+
+<div class = 'box'>
+
+    <div>
+        <ul>
+            <h3> Web Scrapper. {{month}} </h3>
+            <p>IMF - Working Papers.</p>
+        {% for text, link in links %}
+
+            <li> <a href='{{ link }}'>{{ text }}</a> </li>
+
+        {% endfor %} 
+        </ul>
+    </div>
+    <div>
+        <ul>
+            <p>BIS - Speeches</p>
+        {% for text, link in links_2 %}
+
+            <li> <a href='{{ link }}'>{{ text }}</a> </li>
+
+        {% endfor %} 
+        </ul>
+    </div>
+
+    <div>
+        <ul>
+            <p>IMF - Speeches and Transcripts</p>
+        {% for text, link in links_3 %}
+
+            <li> <a href='{{ link }}'>{{ text }}</a> </li>
+
+        {% endfor %} 
+        </ul>
+    </div>
+
+</div>
+</body>
+</html>
