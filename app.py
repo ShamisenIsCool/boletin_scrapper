@@ -10,17 +10,19 @@ websites_names = scrapper.get_webnames()
 scrapper.get_imf_wp()
 scrapper.get_speech_bis()
 scrapper.get_speech_imf()
-
-
-list = ['https://animepahe.ru/play/7808db84-55f1-f313-1019-e688b62574cf/0fe24c039b4704268808c8f71671f8a2c8c4eef9bb922acbdff9e3b96b1dd94e',
-        'https://animepahe.ru/play/7808db84-55f1-f313-1019-e688b62574cf/0fe24c039b4704268808c8f71671f8a2c8c4eef9bb922acbdff9e3b96b1dd94e']
-
+scrapper.get_fem_reports()
 #list = scrap_link()
 
 @app.route('/')
 def main(): 
     return render_template('index.html', 
-                           links = scrapper.get_all_websites(), 
+                           websites = scrapper.get_all_websites(), 
                            names = websites_names,
                            month = scrapper.get_month(),
+                           zip= zip, 
                            )
+
+
+
+if __name__ == "__main__": 
+    app.run(debug=False)

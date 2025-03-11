@@ -15,44 +15,27 @@
     <h1>Hello World!</h1>
     <h2>This is a Flask App meant to scrap working papers from the Web</h2>
 
-
 </br>
 
 
 <div class = 'box'>
 
-    <div>
-        <ul>
-            <h3> Web Scrapper. {{month}} </h3>
-            <p>IMF - Working Papers.</p>
-        {% for text, link in links %}
-
-            <li> <a href='{{ link }}'>{{ text }}</a> </li>
-
-        {% endfor %} 
-        </ul>
-    </div>
-    <div>
-        <ul>
-            <p>BIS - Speeches</p>
-        {% for text, link in links_2 %}
-
-            <li> <a href='{{ link }}'>{{ text }}</a> </li>
-
-        {% endfor %} 
-        </ul>
-    </div>
 
     <div>
-        <ul>
-            <p>IMF - Speeches and Transcripts</p>
-        {% for text, link in links_3 %}
+        <h3> Web Scrapper. {{month}} </h3>
+        {% for links, name in zip(websites, names) %}
+            <ul>
+                <p>{{name}}</p>
 
-            <li> <a href='{{ link }}'>{{ text }}</a> </li>
+                {% for text, link in links %}
 
-        {% endfor %} 
-        </ul>
+                    <li> <a href='{{ link }}'>{{ text }}</a> </li>
+
+                {% endfor %} 
+            </ul>
+        {% endfor %}
     </div>
+
 
 </div>
 </body>

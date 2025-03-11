@@ -115,10 +115,11 @@ class Scrapper:
         # close the browser
         '''
         final.reverse()
-        driver.quit()
+        
 
 
         self.websites.append(final)
+        driver.quit()
         return final
 
     
@@ -189,11 +190,12 @@ class Scrapper:
                     pair = (text, link)
                     final.append(pair)
 
-        driver.quit()
+        
         final.reverse()
 
         self.wn.append('BIS - Speeches')
         self.websites.append(final)
+        driver.quit()
         return final
     
     def get_speech_imf(self):
@@ -273,17 +275,18 @@ class Scrapper:
                     pair = (text, link)
                     final.append(pair)
 
-        driver.quit()
+        
         final.reverse()
 
         self.wn.append('IMF - Speeches and Transcripts')
         self.websites.append(final)
+        driver.quit()
         return final 
 
     def get_fem_reports(self): 
         
-
-        today = self.get_month()[0:3]
+        
+        today = self.get_month()[0:3] #Gets current month 
 
         options = webdriver.ChromeOptions()
 
@@ -295,37 +298,52 @@ class Scrapper:
         # instantiate Chrome WebDriver without headless mode
         #driver = webdriver.Chrome()
 
-        driver.implicitly_wait(15)
+        #driver.implicitly_wait(15)
         # URL of the web page to scrape
         #url = "https://www.scrapingcourse.com/javascript-rendering"
 
         # open the specified URL in the browser
 
 
-
+        final = []
         #Inicio de Loop. extrae el html desde la pagina 1 hasta la 4. Si la fecha no coincide con la de hoy, se finaliza el proceso de extracción. 
         for page in range(1,5):
             
 
             url = f'https://www.weforum.org/publications/?types=Whitepaper%2CReport&page={page}'
 
-            driver.get(url)
-            time.sleep(3)
-            driver.find_elements(By.CLASS_NAME, 'chakra-link wef-spn4bz')
-            driver.find_elements(By.CLASS_NAME, 'chakra-text wef-usrq6c')
+            driver.get(url) #The browser access the url 
+            time.sleep(3) #Time the drivers wait for the website to load
+            #driver.find_elements(By.CLASS_NAME, 'chakra-link wef-spn4bz') #Searches element by class name, extracts LINK
+            #driver.find_elements(By.CLASS_NAME, 'chakra-text wef-usrq6c') #Extracts time of the element 
+
             soup = BeautifulSoup(driver.page_source, 'html5lib')
 
             results = soup.find('div', id = 'results')
-            titles = results.find_all('a', class_='chakra-link wef-spn4bz')
-            dates = results.find_all('time', class_ = 'chakra-text wef-usrq6c')
+            titles = results.find_all('a', class_='chakra-link wef-spn4bz') #list
+            dates = results.find_all('time', class_ = 'chakra-text wef-usrq6c') #list
 
+            
             for i,n in zip(titles,dates):
-                if n.string[0:3].lower() != today.lower():
-                    return 
-                print(n.string)
-                print(i.string)
+                if n.string[0:3].lower() != today.lower() and 'hour' not in n.string: #Here it filters the date, if n(which is the first three words of the month) equals today (which gets the current month) then: 
+                    final.reverse()
+                    self.wn.append('FEM (WEF) - White papers reports')
+                    self.websites.append(final)
+                    driver.quit()
+                    return final 
+                
 
-    
+                text= i.string
+
+                link = i.get('href')
+                pair = (text,link)
+                final.append(pair)
+                print(text)
+
+                   
+
+
+
 if __name__ == '__main__':
     h = Scrapper()
     h.get_fem_reports()
