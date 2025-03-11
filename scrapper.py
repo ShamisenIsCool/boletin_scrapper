@@ -360,20 +360,41 @@ class Scrapper:
 
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
-    
+        options.add_argument("--enable-javascript")
+
         # initialize an instance of the Chrome driver (browser) in headless mode
         driver = webdriver.Chrome(options=options)
-        driver.implicitly_wait(10)
+        #driver.implicitly_wait(5)
 
         url = r'https://www.oecd.org/en/search/publications.html?orderBy=mostRecent&page=0&facetTags=oecd-content-types%3Apublications%2Freports%2Coecd-languages%3Aen&minPublicationYear=2024&maxPublicationYear=2025'
         driver.get(url)
+        time.sleep(6)
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+        print(soup.prettify())
 
-        
+        print(driver.find_elements(By.CLASS_NAME, 'search-results'))
+        return 
+        move_next_page = driver.find_elements(By.CLASS_NAME, 'cmp-pagination__next')
+        print(move_next_page)
         driver.find_elements(By.CLASS_NAME, 'search-result-list-item__title')
         driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
-        driver.find_element(By.CLASS_NAME, 'cmp-pagination__next')
 
-        soup = BeautifulSoup(driver.page_source, 'html5lib')
+        pages_to_scrap = []
+
+        for i in range(0,2): 
+            soup = BeautifulSoup(driver.page_source, 'html5lib')
+            pages_to_scrap.append(soup)        
+
+            move_next_page.click()
+            time.sleep(4)
+            move_next_page = driver.find_element(By.CLASS_NAME, 'cmp-pagination__next')
+
+        for page in pages_to_scrap: 
+            titles = page.find_all('a', class_ = 'search-result-list-item__title')
+            dates = page.find_all('span', class_ = 'search-result-list-item__date')            
+            
+            print(titles)
+            print(dates)
 
 
 
