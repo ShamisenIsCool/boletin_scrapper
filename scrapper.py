@@ -184,7 +184,7 @@ class Scrapper:
             dates = page.find_all(class_ = 'item_date')
 
             for i,n in zip(titles, dates):
-                if today.lower() in (n.string).lower(): 
+                if today.lower() in n.string.lower(): 
                     link = r'https://www.bis.org' + i.a.get('href')
                     text = i.a.span.string + i.a.span.next_sibling.string
                     pair = (text, link)
@@ -234,7 +234,7 @@ class Scrapper:
 
 
 
-        time.sleep(2)
+        time.sleep(3)
         #Goes to the speech sections and scraps the html there
         select_element_f = driver.find_element(By.CLASS_NAME,'coveo-custom-dropdown-search')
         select_element = select_element_f.find_element(By.TAG_NAME, 'select')
@@ -288,13 +288,7 @@ class Scrapper:
         
         today = self.get_month()[0:3] #Gets current month 
 
-        options = webdriver.ChromeOptions()
 
-        # set the options to use Chrome in headless mode
-        options.add_argument("--headless=new")
-        
-        # initialize an instance of the Chrome driver (browser) in headless mode
-        driver = webdriver.Chrome(options=options)
         # instantiate Chrome WebDriver without headless mode
         #driver = webdriver.Chrome()
 
@@ -308,15 +302,35 @@ class Scrapper:
         final = []
         #Inicio de Loop. extrae el html desde la pagina 1 hasta la 4. Si la fecha no coincide con la de hoy, se finaliza el proceso de extracción. 
         for page in range(1,5):
-            
 
-            url = f'https://www.weforum.org/publications/?types=Whitepaper%2CReport&page={page}'
+            options = webdriver.ChromeOptions()
 
-            driver.get(url) #The browser access the url 
-            time.sleep(3) #Time the drivers wait for the website to load
-            #driver.find_elements(By.CLASS_NAME, 'chakra-link wef-spn4bz') #Searches element by class name, extracts LINK
-            #driver.find_elements(By.CLASS_NAME, 'chakra-text wef-usrq6c') #Extracts time of the element 
+        # set the options to use Chrome in headless mode
+            options.add_argument("--headless=new")
+            options.add_argument("--no-sandbox")
+        # initialize an instance of the Chrome driver (browser) in headless mode
+            driver = webdriver.Chrome(options=options)
+            driver.implicitly_wait(15)
 
+            number_page = page
+            url = f'https://www.weforum.org/publications/?types=Whitepaper%2CReport&page={number_page}'
+
+
+            try: 
+                driver.get(url)
+            except: 
+                try:
+                    driver.quit()
+                    driver = webdriver.Chrome(options=options)
+                    driver.implicitly_wait(15)
+                except:
+                    return final
+                
+            print('Success')
+            #Time the drivers wait for the website to load
+            driver.find_elements(By.CLASS_NAME, 'chakra-link wef-spn4bz') #Searches element by class name, extracts LINK
+            driver.find_elements(By.CLASS_NAME, 'chakra-text wef-usrq6c') #Extracts time of the element 
+            time.sleep(3)
             soup = BeautifulSoup(driver.page_source, 'html5lib')
 
             results = soup.find('div', id = 'results')
@@ -341,9 +355,28 @@ class Scrapper:
                 print(text)
 
                    
+    def get_oecd_reports(self): 
+        options = webdriver.ChromeOptions()
+
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+    
+        # initialize an instance of the Chrome driver (browser) in headless mode
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(10)
+
+        url = r'https://www.oecd.org/en/search/publications.html?orderBy=mostRecent&page=0&facetTags=oecd-content-types%3Apublications%2Freports%2Coecd-languages%3Aen&minPublicationYear=2024&maxPublicationYear=2025'
+        driver.get(url)
+
+        
+        driver.find_elements(By.CLASS_NAME, 'search-result-list-item__title')
+        driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
+        driver.find_element(By.CLASS_NAME, 'cmp-pagination__next')
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
 
 
 
 if __name__ == '__main__':
     h = Scrapper()
-    h.get_fem_reports()
+    h.get_oecd_reports()
