@@ -7,10 +7,13 @@ app = Flask(__name__)
 scrapper = Scrapper()
 
 websites_names = scrapper.get_webnames()
-scrapper.get_imf_wp()
+#scrapper.get_imf_wp()
 scrapper.get_speech_bis()
 scrapper.get_speech_imf()
-scrapper.get_fem_reports()
+scrapper.get_speech_fsb()
+scrapper.get_basel_speeches()
+scrapper.get_bisManagement_speeches()
+#scrapper.get_fem_reports()
 #list = scrap_link()
 
 @app.route('/')
@@ -19,7 +22,8 @@ def main():
                            websites = scrapper.get_all_websites(), 
                            names = websites_names,
                            month = scrapper.get_month(),
-                           zip= zip, 
+                           zip= zip,
+                           len = len,  
                            )
 
 
