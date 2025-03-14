@@ -362,8 +362,58 @@ class Scrapper:
 
                    
     def get_oecd_reports(self): 
-        pass 
-    
+        options = webdriver.ChromeOptions()
+
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        options.add_argument("--enable-javascript")
+
+        # initialize an instance of the Chrome driver (browser) in headless mode
+        driver = webdriver.Chrome(options=options)
+
+        #makes the scrapper more stealthy in order to bypass Cloudfare false flagging 
+        stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+        )
+        driver.implicitly_wait(10)
+
+        url = r'https://www.oecd.org/en/search/publications.html?orderBy=mostRecent&page=0&facetTags=oecd-content-types%3Apublications%2Freports%2Coecd-languages%3Aen&minPublicationYear=2024&maxPublicationYear=2025'
+        driver.get(url)
+  
+        e = driver.find_element(By.CLASS_NAME, 'cmp-pagination__next')        
+        driver.find_elements(By.CLASS_NAME, 'search-result-list-item__title')
+        driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
+
+        pages_to_scrap = []
+
+        for i in range(0,2): 
+            soup = BeautifulSoup(driver.page_source, 'html5lib')
+            pages_to_scrap.append(soup)        
+            driver.execute_script("arguments[0].scrollIntoView();", e) #scrolls down to the element, so selenium can click it
+            time.sleep(2) #time to actually scroll down
+            e.click()
+            time.sleep(2)
+            e = driver.find_element(By.CLASS_NAME, 'cmp-pagination__next') 
+
+
+            
+
+
+        for page in pages_to_scrap: 
+            titles = page.find_all('div', class_ = 'search-result-list-item__title')
+            dates = page.find_all('span', class_ = 'search-result-list-item__date')            
+            
+            for title, date in zip(titles, dates):
+                print(date.string.strip())
+                print(title.a.string)
+                print(title.a['href'])
+
+                
     def get_bid_workingpapers(self): 
 
         today = self.get_month()
@@ -567,3 +617,4 @@ class Scrapper:
 if __name__ == '__main__':
     h = Scrapper()
     h.get_bisManagement_speeches()
+
