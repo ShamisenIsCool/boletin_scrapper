@@ -30,3 +30,8 @@ h1, h2, h3{
 a{
   text-decoration: none; 
 }
+
+#nolink{
+  font-family: "Raleway", serif;
+  font-style: italic;
+}

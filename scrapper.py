@@ -8,9 +8,8 @@ import time
 import calendar 
 from datetime import date
 from selenium.webdriver.support.ui import Select
+import requests #to scrap websites who do not need javascript to scrap their html 
 from selenium_stealth import stealth
-
-
 
 #final equals a list of tuples, each tuples equals a pair, each pair consists of a title (first) and a link (second)
 
@@ -351,11 +350,15 @@ class Scrapper:
                 
 
                 text= i.string
-
                 link = i.get('href')
                 pair = (text,link)
                 final.append(pair)
-                print(text)
+
+                #print(text)
+
+            final.reverse()
+            self.wn.append('FEM - Reports')
+            self.websites.append(final)
 
                    
     def get_oecd_reports(self): 
@@ -409,11 +412,209 @@ class Scrapper:
                 print(date.string.strip())
                 print(title.a.string)
                 print(title.a['href'])
+
                 
-     
+    def get_bid_workingpapers(self): 
+
+        today = self.get_month()
+
+        options = webdriver.ChromeOptions()
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        url = r'https://publications.iadb.org/en?f%5B0%5D=type%3A4633'
+
+        #Activates a stealth mode in order to bypass cloudfare protecctions. It is important to note that scrapping is allowed by the website so no rule is being infringed. 
+        stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True)
+        
+        driver.get(url)
+        driver.implicitly_wait(6)
+        driver.find_elements(By.CLASS_NAME, 'views-field-field-title')
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+        t = soup.find_all('div', class_ ='views-field-field-title')
+        d = soup.find_all('div', class_ = 'views-field-field-date-issued-text')
+
+        titles =  [title.span.a for title in t if t is not None and title.span is not None] #Returns <a> tags 
+        dates = [date.span for date in d if d is not None]#Returns <span> tag which contains month and year 
+        final = []
+        for title, date in zip(titles, dates):
+            if today[0:3] in date.string:
+                title, link =  title.string, 'https://publications.iadb.org' + str(title['href'])
+                final.append((title, link))
+                #print(title)
+                #print(link)
+            else:
+                break
+        
+
+        driver.quit()
+        final.reverse()
+        self.wn.append('BID - Working Papers')
+        self.websites.append(final)
+
+        return final 
+
+    def get_speech_fsb(self):
+        #Here we use the requests method to scrap the fsb website, since javascript is not needed to showing the content we are looking for and it is also faster.  
+        today = self.get_month() #Gets name of running month 
+
+        url = 'https://www.fsb.org/press/speeches-and-statements/'
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html5lib')
+
+        titles = soup.find_all('div', class_ = 'post-title')
+
+        main_container = soup.find('div', class_ = 'wp-bootstrap-blocks-row') #it gets main container
+        main_container = main_container.find('div', class_ = 'display-posts-listing') #then it filters for child container where we want to extract dates from 
+        dates = main_container.find_all('div', class_ = 'post-date')
+
+        titles = [title.h3.a for title in titles if title.h3 is not None]
+        dates = [date.span for date in dates]
+
+        final =[]
+        for title, date in zip(titles,dates): 
+            if today in date.string: 
+                title, link = title.string, title['href']
+                final.append((title, link))
+            else:
+                break 
+        final.reverse()
+        self.wn.append('FSB - Speeches')
+        self.websites.append(final)
+
+        return final 
+            
+    def get_basel_speeches(self): 
+
+        today = self.get_month()[0:3] #Gets current month 
 
 
+        url = r'https://www.bis.org/bcbs_speeches/index.htm?m=258&doclist1_page_length=25'
+        options = webdriver.ChromeOptions()
+
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+
+        # initialize an instance of the Chrome driver (browser) in headless mode
+        driver = webdriver.Chrome(options=options)
+        # instantiate Chrome WebDriver without headless mode
+        #driver = webdriver.Chrome()
+
+
+
+
+        driver.implicitly_wait(10)
+        # URL of the web page to scrape
+        #url = "https://www.scrapingcourse.com/javascript-rendering"
+
+        # open the specified URL in the browser
+        driver.get(url)
+        driver.find_elements(By.TAG_NAME, 'p')
+        driver.find_elements(By.TAG_NAME, 'tr')
+
+        time.sleep(3) #waits 15 seconds for page to load 
+
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+
+
+        titles = soup.find_all(class_ = 'title')
+        dates = soup.find_all(class_ = 'item_date')
+        
+        
+        #i = tile
+        #n = date
+        final = [] 
+        print(titles)
+        for i,n in zip(titles, dates):
+
+            if today.lower() in n.string.lower(): 
+                link = r'https://www.bis.org' + i.a['href']
+                text = i.a.span.string + i.a.span.next_sibling.string
+                pair = (text, link)
+                print(pair)
+                final.append(pair)
+            else:
+                break 
+
+
+        final.reverse()
+
+        self.wn.append('BIS - Basel Speeches')
+        self.websites.append(final)
+        driver.quit()
+        return final        
+    def get_bisManagement_speeches(self): 
+
+        today = self.get_month()[0:3] #Gets current month 
+
+
+        url = r'https://www.bis.org/mgmtspeeches/index.htm?m=253&mgmtspeeches_page_length=25'
+        options = webdriver.ChromeOptions()
+
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+
+        # initialize an instance of the Chrome driver (browser) in headless mode
+        driver = webdriver.Chrome(options=options)
+        # instantiate Chrome WebDriver without headless mode
+        #driver = webdriver.Chrome()
+
+
+
+
+        driver.implicitly_wait(10)
+        # URL of the web page to scrape
+        #url = "https://www.scrapingcourse.com/javascript-rendering"
+
+        # open the specified URL in the browser
+        driver.get(url)
+        driver.find_elements(By.TAG_NAME, 'p')
+        driver.find_elements(By.TAG_NAME, 'tr')
+
+        time.sleep(3) #waits 15 seconds for page to load 
+
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+
+
+        titles = soup.find_all(class_ = 'title')
+        dates = soup.find_all(class_ = 'item_date')
+        
+        
+        #i = tile
+        #n = date
+        final = [] 
+        for i,n in zip(titles, dates):
+
+            if today.lower() in n.string.lower(): 
+                link = r'https://www.bis.org' + i.a['href']
+                text = i.a.span.string + i.a.span.next_sibling.string
+                pair = (text, link)
+                print(pair)
+                final.append(pair)
+            else:
+                break 
+
+
+        final.reverse()
+
+        self.wn.append('BIS - Management Speeches')
+        self.websites.append(final)
+        driver.quit()
+        return final    
 
 if __name__ == '__main__':
     h = Scrapper()
-    h.get_oecd_reports()
+    h.get_bisManagement_speeches()
+

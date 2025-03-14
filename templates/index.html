@@ -27,6 +27,10 @@
             <ul>
                 <p>{{name}}</p>
 
+                {% if len(links) == 0 %}
+                    <span id="nolink"> No links were found for this month </span>
+                {% endif %}
+
                 {% for text, link in links %}
 
                     <li> <a href='{{ link }}'>{{ text }}</a> </li>
