@@ -613,6 +613,9 @@ class Scrapper:
         self.websites.append(final)
         driver.quit()
         return final    
+    
+    def get_wb_papers():
+        pass 
 
 if __name__ == '__main__':
     h = Scrapper()
