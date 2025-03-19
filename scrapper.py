@@ -12,6 +12,11 @@ import requests #to scrap websites who do not need javascript to scrap their htm
 from selenium_stealth import stealth
 
 #final equals a list of tuples, each tuples equals a pair, each pair consists of a title (first) and a link (second)
+#All BIS websites' functions should flag these options to properly adress speed related issues observed when accesing a BIS website.
+#options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+#options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+#options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+#options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers. 
 
 class Scrapper:
     '''
@@ -145,7 +150,10 @@ class Scrapper:
         url = r'https://www.bis.org/cbspeeches/index.htm?cbspeeches_page_length=25'
         url2 = r'https://www.bis.org/cbspeeches/index.htm?cbspeeches_page=2&cbspeeches_page_length=25'
         options = webdriver.ChromeOptions()
-
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
         
@@ -162,30 +170,43 @@ class Scrapper:
         #url = "https://www.scrapingcourse.com/javascript-rendering"
 
         # open the specified URL in the browser
+        pages_to_scrap = []
         driver.get(url)
         driver.find_elements(By.TAG_NAME, 'p')
         driver.find_elements(By.TAG_NAME, 'tr')
+        driver.find_element(By.CLASS_NAME, 'documentList')
+        driver.find_element(By.CLASS_NAME, 'title')
 
-        time.sleep(8) #waits 15 seconds for page to load 
-
-        pages_to_scrap = []
-        soup = BeautifulSoup(driver.page_source, 'html5lib')
-        pages_to_scrap.append(soup)        
+        time.sleep(5) #waits 15 seconds for page to load 
 
         move_next_page = driver.find_element(By.CLASS_NAME, 'icon-chevron-right')
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+        #driver.execute_script("arguments[0].scrollIntoView();", move_next_page)
+
+        time.sleep(2)
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+        #print(soup.find('table', class_ = 'documentList'))
+        pages_to_scrap.append(soup)        
+
+
         move_next_page.click()
 
+        time.sleep(5)
+
         soup_2 = BeautifulSoup(driver.page_source, 'html5lib')
+        #print('Second Soup')
+        #print(soup_2.find('table', class_ = 'documentList'))
         pages_to_scrap.append(soup_2)
 
         final = []
         for page in pages_to_scrap:
-
+            
             #every page is a soup object (from the BeautifulSoup Library)
-            titles = page.find_all(class_ = 'title')
-            dates = page.find_all(class_ = 'item_date')
-
+            titles = page.find_all('div', class_ = 'title')
+            dates = page.find_all('td', class_ = 'item_date')
             for i,n in zip(titles, dates):
+                print(i.a.span.string + i.a.span.next_sibling.string,n)
                 if today.lower() in n.string.lower(): 
                     link = r'https://www.bis.org' + i.a.get('href')
                     text = i.a.span.string + i.a.span.next_sibling.string
@@ -261,7 +282,7 @@ class Scrapper:
 
         select.select_by_value("Transcript")
         filter.click()
-        time.sleep(4)
+        time.sleep(5)
         soup_2 = BeautifulSoup(driver.page_source, 'html5lib')
         pages_to_scrap.append(soup_2)    
 
@@ -269,6 +290,7 @@ class Scrapper:
         for page in pages_to_scrap:
             titles = page.find_all('a', class_ = 'CoveoResultLink')
             dates = page.find_all(class_ = 'CoveoFieldValue')
+            dates = [date for date in dates if date is not None]
 
             for i,n in zip(titles, dates):
                 if n.span.string[0:3] == today:
@@ -499,7 +521,10 @@ class Scrapper:
 
         url = r'https://www.bis.org/bcbs_speeches/index.htm?m=258&doclist1_page_length=25'
         options = webdriver.ChromeOptions()
-
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
 
@@ -560,7 +585,10 @@ class Scrapper:
 
         url = r'https://www.bis.org/mgmtspeeches/index.htm?m=253&mgmtspeeches_page_length=25'
         options = webdriver.ChromeOptions()
-
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
 
@@ -614,7 +642,107 @@ class Scrapper:
         driver.quit()
         return final    
 
+    def get_bis_workingpapers(self):
+        today = self.get_month()[0:3] #Gets current month 
+
+        url = r'https://www.bis.org/wpapers/index.htm?m=161&wppubls_page_length=15'
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(10)        
+        driver.get(url)
+        driver.find_elements(By.TAG_NAME, 'p')
+        driver.find_elements(By.TAG_NAME, 'tr')
+
+        time.sleep(3) 
+
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+
+
+        titles = soup.find_all(class_ = 'title')
+        dates = soup.find_all(class_ = 'item_date')
+
+        final = [] 
+        for title,date in zip(titles, dates):
+
+            if today.lower() in date.string.lower(): 
+                link = r'https://www.bis.org' + title.a['href']
+                text = title.a.span.string + title.a.span.next_sibling.string
+                pair = (text, link)
+                print(pair)
+                final.append(pair)
+            else:
+                break 
+
+        final.reverse()
+
+        self.wn.append('BIS - Working Papers')
+        self.websites.append(final)
+        driver.quit()
+        return final   
+    
+    def get_bis_papers(self):
+        today = self.get_month()[0:3] #Gets current month 
+
+        url = r'https://www.bis.org/bispapers/index.htm?m=162&bispapers_page_length=15'
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(10)        
+        driver.get(url)
+        driver.find_elements(By.TAG_NAME, 'p')
+        driver.find_elements(By.TAG_NAME, 'tr')
+
+        time.sleep(3) 
+
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+
+
+        titles = soup.find_all(class_ = 'title')
+        dates = soup.find_all(class_ = 'item_date')
+
+        final = [] 
+        for title,date in zip(titles, dates):
+
+            if today.lower() in date.string.lower(): 
+                link = r'https://www.bis.org' + title.a['href']
+                text = title.a.span.string + title.a.span.next_sibling.string
+                pair = (text, link)
+                print(pair)
+                final.append(pair)
+            else:
+                break 
+
+        final.reverse()
+
+        self.wn.append('BIS - Papers')
+        self.websites.append(final)
+        driver.quit()
+        return final  
+    
+    def get_all_speeches(self):
+        self.get_speech_bis()
+        self.get_speech_imf()
+        self.get_speech_fsb()
+        self.get_basel_speeches()
+        self.get_bisManagement_speeches()
+        self.get_speech_imf()
+
 if __name__ == '__main__':
     h = Scrapper()
-    h.get_bisManagement_speeches()
+    h.get_bis_papers()
 
