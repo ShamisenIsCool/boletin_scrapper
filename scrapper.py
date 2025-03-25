@@ -418,7 +418,7 @@ class Scrapper:
 
         url = r'https://www.oecd.org/en/search/publications.html?orderBy=mostRecent&page=0&facetTags=oecd-content-types%3Apublications%2Freports%2Coecd-languages%3Aen&minPublicationYear=2024&maxPublicationYear=2025'
         driver.get(url)
-        driver.implicitly_wait(10)
+        driver.implicitly_wait(20)
             
         driver.find_elements(By.CLASS_NAME, 'search-result-list-item__title')
         dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
@@ -451,7 +451,9 @@ class Scrapper:
             
             for title, date in zip(titles, dates):
                 if today in date.string: 
+
                     text, link = title.a.string, title.a['href']
+                    #print(text, link)
                     final.append((text,link))
 
 
@@ -1000,7 +1002,7 @@ class Scrapper:
         titles = soup.find_all('div', class_ = 'post-title')
 
         main_container = soup.find('div', class_ = 'wp-bootstrap-blocks-row') #it gets main container
-        main_container = main_container.find('div', class_ = 'display-posts-listing') #then it filters for child container where we want to extract dates from 
+        main_container = main_container.find('div', class_ = 'display-posts-listing') #then it filters for child container where we'd like to extract dates from 
         dates = main_container.find_all('div', class_ = 'post-date')
 
         titles = [title.h3.a for title in titles if title.h3 is not None]
@@ -1019,14 +1021,226 @@ class Scrapper:
         self.websites.append(final)
 
         return final 
+
+    def get_month_asnumber(self):
+        return str(date.today())[5:7]
+
+    def get_report_wb(self):
+        today = self.get_month_asnumber()
+        print(today)
+        final = []
+        url = 'https://openknowledge.worldbank.org/communities/06251f8a-62c2-59fb-add5-ec0993fc20d9?spc.sf=dc.date.issued&spc.sd=DESC&spc.page=1&spc.rpp=35'
+
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(25)
+        driver.get(url)
+
+        driver.find_elements(By.CLASS_NAME, 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        driver.find_elements(By.CLASS_NAME, 'item-list-date ng-star-inserted')   
+        #driver.find_element(By.CLASS_NAME, 'list-unstyled ng-star-inserted')
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+        titles = soup.find_all('a', 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        dates = soup.find_all('span', 'item-list-date ng-star-inserted')
+        descs = soup.find_all('div', 'content dont-break-out preserve-line-breaks truncated') #Descriptions
+        
+        report_contents = zip(titles, dates, descs)
+
+        for title, date, desc in report_contents:
+            if today in date.string[5:7] and 'report' in desc.string:
+                text, link = title.string, title['href']
+                final.append((text,link))
+                print(title.string, title['href'])
+        
+        final.reverse()
+        self.wn.append('World Bank - Reports')
+        self.websites.append(final) 
+
+        return final 
+
+
+    def get_wp_wb(self): #wp: working papers
+        today = self.get_month_asnumber()
+        print(today)
+        final = []
+        url = 'https://openknowledge.worldbank.org/communities/06251f8a-62c2-59fb-add5-ec0993fc20d9?spc.sf=dc.date.issued&spc.sd=DESC&spc.page=1&spc.rpp=35'
+
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(25)
+        driver.get(url)
+
+        driver.find_elements(By.CLASS_NAME, 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        driver.find_elements(By.CLASS_NAME, 'item-list-date ng-star-inserted')   
+        #driver.find_element(By.CLASS_NAME, 'list-unstyled ng-star-inserted')
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+        titles = soup.find_all('a', 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        dates = soup.find_all('span', 'item-list-date ng-star-inserted')
+        descs = soup.find_all('div', 'content dont-break-out preserve-line-breaks truncated') #Descriptions
+        
+        report_contents = zip(titles, dates, descs)
+
+        for title, date, desc in report_contents:
+            if today in date.string[5:7] and 'report' not in desc.string:
+                text, link = title.string, title['href']
+                final.append((text,link))
+                print(title.string, title['href'])
+        
+        final.reverse()
+        self.wn.append('World Bank - Working Papers')
+        self.websites.append(final)           
+
+        return final
+    
+
+    def get_wp_oecd(self): 
+        today = self.get_month()[0:3]
+        final = []
+        options = webdriver.ChromeOptions()
+
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        #options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        #options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        #options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        #options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+
+
+        # initialize an instance of the Chrome driver (browser) in headless mode
+        driver = webdriver.Chrome(options=options)
+        url = r'https://www.oecd.org/en/publications/reports.html?orderBy=mostRecent&page=0&facetTags=oecd-content-types%3Apublications%2Fworking-papers'
+
+        #makes the scrapper more stealthy in order to bypass Cloudfare false flagging 
+        stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+        )
+        
+
+        driver.get(url)
+        driver.implicitly_wait(15)
+            
+        driver.find_elements(By.CLASS_NAME, 'search-result-list-item__title')
+        dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
+
+        pages_to_scrap = []
+        #driver.execute_script("window.scrollTo(0, (document.body.scrollHeight))") #scrolls to the bottom of the page
+        
+        #e = driver.find_element(By.CSS_SELECTOR, '[aria-label="Next page"]')
+
+
+        #for date in dates_b:
+        #    print(date.text)
+
+        a = True
+        while a: 
+            for date in dates_b:
+                if today not in date.text:
+                    a = False
+            soup = BeautifulSoup(driver.page_source, 'html5lib')
+            pages_to_scrap.append(soup)        
+            next_page = driver.find_element(By.CSS_SELECTOR, '[rel = "next"]')
+            driver.execute_script("arguments[0].click();", next_page)
+            time.sleep(2)
+
+        for page in pages_to_scrap: 
+            titles = page.find_all('div', class_ = 'search-result-list-item__title')
+            dates = page.find_all('span', class_ = 'search-result-list-item__date')            
+            
+            for title, date in zip(titles, dates):
+                if today in date.string: 
+                    text, link = title.a.string, title.a['href']
+                    print(text,link)
+                    final.append((text,link))
+
+
+
+        final.reverse()
+        self.wn.append('OECD - Working Papers')
+        self.websites.append(final)
+
+        return final
+    
+    def get_speeches_wb(self):
+        today = self.get_month_asnumber()
+        today = '01' # just for testing
+        final = []
+        url = 'https://openknowledge.worldbank.org/communities/b6a50016-276d-56d3-bbe5-891c8d18db24?spc.sf=dc.date.issued&spc.sd=DESC'
+
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(25)
+        driver.get(url)
+
+        driver.find_elements(By.CLASS_NAME, 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        driver.find_elements(By.CLASS_NAME, 'item-list-date ng-star-inserted')   
+        #driver.find_element(By.CLASS_NAME, 'list-unstyled ng-star-inserted')
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+        titles = soup.find_all('a', 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        dates = soup.find_all('span', 'item-list-date ng-star-inserted')
+        
+        
+        report_contents = zip(titles, dates)
+
+        for title, date in report_contents:
+            if today in date.string[5:7]:
+                text, link = title.string, title['href']
+                final.append((text,link))
+                print(title.string, title['href'])
+        
+        final.reverse()
+        self.wn.append('World Bank - Speeches')
+        self.websites.append(final) 
+
+        return final 
+    
+    #Methods to retrieve websites by category
+    #------------------------------------------------------
     def get_all_speeches(self):
+        
         self.get_speech_bis()
         self.get_speech_imf()
         self.get_speech_fsb()
         self.get_basel_speeches()
         self.get_bisManagement_speeches()
 
+    def get_all_reports(self):
+        self.get_report_wb()
+        #Falta agregar todos
+    
+    def get_all_papers(self):
+        self.get_bid_workingpapers()
+        #Falta agregar todos
+
 if __name__ == '__main__':
     h = Scrapper()
-    h.get_report_fsb()
+    h.get_speeches_wb()
 
