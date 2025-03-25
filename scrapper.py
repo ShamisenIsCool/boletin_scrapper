@@ -12,6 +12,7 @@ import requests #to scrap websites who do not need javascript to scrap their htm
 from selenium_stealth import stealth
 
 #final equals a list of tuples, each tuples equals a pair, each pair consists of a title (first) and a link (second)
+
 #All BIS websites' functions should flag these options to properly adress speed related issues observed when accesing a BIS website.
 #options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
 #options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
@@ -26,7 +27,7 @@ class Scrapper:
     def __init__(self, links_list = [], month =[]):
         
         today = date.today() 
-
+        
         #self.links_list = links_list
         #self.month = month 
 
@@ -180,7 +181,7 @@ class Scrapper:
         time.sleep(5) #waits 15 seconds for page to load 
 
         move_next_page = driver.find_element(By.CLASS_NAME, 'icon-chevron-right')
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight)") #Scroll to the bottom
         #driver.execute_script("arguments[0].scrollIntoView();", move_next_page)
 
         time.sleep(2)
@@ -331,7 +332,12 @@ class Scrapper:
 
         # set the options to use Chrome in headless mode
             options.add_argument("--headless=new")
-            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+            options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+            options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+            options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+
+
         # initialize an instance of the Chrome driver (browser) in headless mode
             driver = webdriver.Chrome(options=options)
             driver.implicitly_wait(15)
@@ -384,11 +390,17 @@ class Scrapper:
 
                    
     def get_oecd_reports(self): 
+        today = self.get_month()[0:3]
+        final = []
         options = webdriver.ChromeOptions()
 
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
-        options.add_argument("--enable-javascript")
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+
 
         # initialize an instance of the Chrome driver (browser) in headless mode
         driver = webdriver.Chrome(options=options)
@@ -402,39 +414,51 @@ class Scrapper:
         renderer="Intel Iris OpenGL Engine",
         fix_hairline=True,
         )
-        driver.implicitly_wait(10)
+        
 
         url = r'https://www.oecd.org/en/search/publications.html?orderBy=mostRecent&page=0&facetTags=oecd-content-types%3Apublications%2Freports%2Coecd-languages%3Aen&minPublicationYear=2024&maxPublicationYear=2025'
         driver.get(url)
-  
-        e = driver.find_element(By.CLASS_NAME, 'cmp-pagination__next')        
+        driver.implicitly_wait(10)
+            
         driver.find_elements(By.CLASS_NAME, 'search-result-list-item__title')
-        driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
+        dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
 
         pages_to_scrap = []
+        driver.execute_script("window.scrollTo(0, (document.body.scrollHeight/2))") #scrolls to the bottom of the page
+        time.sleep(5)
+        e = driver.find_element(By.CSS_SELECTOR, '[rel="next"]')
 
-        for i in range(0,2): 
+        #for date in dates_b:
+        #    print(date.text)
+
+        a = True
+        while a: 
+            for date in dates_b:
+                if today not in date.text:
+                    a = False
             soup = BeautifulSoup(driver.page_source, 'html5lib')
             pages_to_scrap.append(soup)        
             driver.execute_script("arguments[0].scrollIntoView();", e) #scrolls down to the element, so selenium can click it
             time.sleep(2) #time to actually scroll down
             e.click()
             time.sleep(2)
-            e = driver.find_element(By.CLASS_NAME, 'cmp-pagination__next') 
-
-
-            
-
+            e = driver.find_element(By.CSS_SELECTOR, '[rel="next"]') 
+            dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
 
         for page in pages_to_scrap: 
             titles = page.find_all('div', class_ = 'search-result-list-item__title')
             dates = page.find_all('span', class_ = 'search-result-list-item__date')            
             
             for title, date in zip(titles, dates):
-                print(date.string.strip())
-                print(title.a.string)
-                print(title.a['href'])
+                if today in date.string: 
+                    text, link = title.a.string, title.a['href']
+                    final.append((text,link))
 
+
+
+        final.reverse()
+        self.wn.append('OECD - Reports')
+        self.websites.append(final)
                 
     def get_bid_workingpapers(self): 
 
@@ -733,16 +757,276 @@ class Scrapper:
         self.websites.append(final)
         driver.quit()
         return final  
+
+    def get_bis_workingpapers(self):
+        today = self.get_month()[0:3] #Gets current month 
+
+        url = r'https://www.bis.org/wpapers/index.htm?m=161&wppubls_page_length=15'
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(10)        
+        driver.get(url)
+        driver.find_elements(By.TAG_NAME, 'p')
+        driver.find_elements(By.TAG_NAME, 'tr')
+
+        time.sleep(3) 
+
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+
+
+        titles = soup.find_all(class_ = 'title')
+        dates = soup.find_all(class_ = 'item_date')
+
+        final = [] 
+        for title,date in zip(titles, dates):
+
+            if today.lower() in date.string.lower(): 
+                link = r'https://www.bis.org' + title.a['href']
+                text = title.a.span.string + title.a.span.next_sibling.string
+                pair = (text, link)
+                print(pair)
+                final.append(pair)
+            else:
+                break 
+
+        final.reverse()
+
+        self.wn.append('BIS - Working Papers')
+        self.websites.append(final)
+        driver.quit()
+        return final   
     
+    def get_bis_ifcreports(self):
+        today = self.get_month()[0:3] #Gets current month 
+
+        url = r'https://www.bis.org/ifc_reports/index.htm'
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(10)        
+        driver.get(url)
+        driver.find_elements(By.TAG_NAME, 'p')
+        driver.find_elements(By.TAG_NAME, 'tr')
+
+        time.sleep(3) 
+
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+
+
+        titles = soup.find_all(class_ = 'title')
+        dates = soup.find_all(class_ = 'item_date')
+
+        final = [] 
+        for title,date in zip(titles, dates):
+
+            if today.lower() in date.string.lower(): 
+                link = r'https://www.bis.org' + title.a['href']
+                text = title.a.span.string + title.a.span.next_sibling.string
+                pair = (text, link)
+                print(pair)
+                final.append(pair)
+            else:
+                break 
+
+        final.reverse()
+
+        self.wn.append('BIS - IFC Reports')
+        self.websites.append(final)
+        driver.quit()
+        return final  
+    def get_bis_bsbreports(self):
+        today = self.get_month()[0:3] #Gets current month 
+
+        url = r'https://www.bis.org/bcbs/publications.htm?m=75'
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(10)        
+        driver.get(url)
+        driver.find_elements(By.TAG_NAME, 'p')
+        driver.find_elements(By.TAG_NAME, 'tr')
+
+        time.sleep(3) 
+
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+
+
+        titles = soup.find_all(class_ = 'title')
+        dates = soup.find_all(class_ = 'item_date')
+
+        final = [] 
+        for title,date in zip(titles, dates):
+
+            if today.lower() in date.string.lower(): 
+                link = r'https://www.bis.org' + title.a['href']
+                text = title.a.span.string + title.a.span.next_sibling.string
+                pair = (text, link)
+                print(pair)
+                final.append(pair)
+            else:
+                break 
+
+        final.reverse()
+
+        self.wn.append('BIS - BSB Reports')
+        self.websites.append(final)
+        driver.quit()
+        return final  
+    def get_bis_cpmireports(self):
+        today = self.get_month()[0:3] #Gets current month 
+
+        url = r'https://www.bis.org/cpmi_publs/index.htm?m=116'
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(10)        
+        driver.get(url)
+        driver.find_elements(By.TAG_NAME, 'p')
+        driver.find_elements(By.TAG_NAME, 'tr')
+
+        time.sleep(3) 
+
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+
+
+        titles = soup.find_all(class_ = 'title')
+        dates = soup.find_all(class_ = 'item_date')
+
+        final = [] 
+        for title,date in zip(titles, dates):
+
+            if today.lower() in date.string.lower(): 
+                link = r'https://www.bis.org' + title.a['href']
+                text = title.a.span.string + title.a.span.next_sibling.string
+                pair = (text, link)
+                print(pair)
+                final.append(pair)
+            else:
+                break 
+
+        final.reverse()
+
+        self.wn.append('BIS - CPMI Reports')
+        self.websites.append(final)
+        driver.quit()
+        return final      
+
+    def get_bis_cgfsreports(self):
+        today = self.get_month()[0:3] #Gets current month 
+
+        url = r'https://www.bis.org/cgfs_publs/index.htm?m=103'
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(10)        
+        driver.get(url)
+        driver.find_elements(By.TAG_NAME, 'p')
+        driver.find_elements(By.TAG_NAME, 'tr')
+
+        time.sleep(3) 
+
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+
+
+        titles = soup.find_all(class_ = 'title')
+        dates = soup.find_all(class_ = 'item_date')
+
+        final = [] 
+        for title,date in zip(titles, dates):
+
+            if today.lower() in date.string.lower(): 
+                link = r'https://www.bis.org' + title.a['href']
+                text = title.a.span.string + title.a.span.next_sibling.string
+                pair = (text, link)
+                print(pair)
+                final.append(pair)
+            else:
+                break 
+
+        final.reverse()
+
+        self.wn.append('BIS - CGFS Reports')
+        self.websites.append(final)
+        driver.quit()
+        return final          
+
+
+
+    def get_report_fsb(self):
+        #Here we use the requests method to scrap the fsb website, since javascript is not needed to showing the content we are looking for and it is also faster.  
+        today = self.get_month() #Gets name of running month 
+
+        url = 'https://www.fsb.org/publications/'
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html5lib')
+
+        titles = soup.find_all('div', class_ = 'post-title')
+
+        main_container = soup.find('div', class_ = 'wp-bootstrap-blocks-row') #it gets main container
+        main_container = main_container.find('div', class_ = 'display-posts-listing') #then it filters for child container where we want to extract dates from 
+        dates = main_container.find_all('div', class_ = 'post-date')
+
+        titles = [title.h3.a for title in titles if title.h3 is not None]
+        dates = [date.span for date in dates]
+
+        final =[]
+        for title, date in zip(titles,dates): 
+            if today in date.string: 
+                title, link = title.string, title['href']
+                final.append((title, link))
+                print(title,link)
+            else:
+                break 
+        final.reverse()
+        self.wn.append('FSB - Speeches')
+        self.websites.append(final)
+
+        return final 
     def get_all_speeches(self):
         self.get_speech_bis()
         self.get_speech_imf()
         self.get_speech_fsb()
         self.get_basel_speeches()
         self.get_bisManagement_speeches()
-        self.get_speech_imf()
 
 if __name__ == '__main__':
     h = Scrapper()
-    h.get_bis_papers()
+    h.get_report_fsb()
 

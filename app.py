@@ -8,7 +8,6 @@ scrapper = Scrapper()
 
 websites_names = scrapper.get_webnames()
 #scrapper.get_imf_wp()
-scrapper.get_speech_bis()
 #scrapper.get_speech_imf()
 #scrapper.get_speech_fsb()
 #scrapper.get_basel_speeches()
@@ -17,6 +16,7 @@ scrapper.get_speech_bis()
 #scrapper.get_fem_reports()
 #list = scrap_link()
 
+scrapper.get_all_speeches()
 @app.route('/')
 def main(): 
     return render_template('index.html', 
