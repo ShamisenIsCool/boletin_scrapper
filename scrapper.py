@@ -12,7 +12,6 @@ import requests #to scrap websites who do not need javascript to scrap their htm
 from selenium_stealth import stealth
 
 #final equals a list of tuples, each tuples equals a pair, each pair consists of a title (first) and a link (second)
-
 #All BIS websites' functions should flag these options to properly adress speed related issues observed when accesing a BIS website.
 #options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
 #options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
@@ -74,6 +73,10 @@ class Scrapper:
 
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.        
         
         # initialize an instance of the Chrome driver (browser) in headless mode
         driver = webdriver.Chrome(options=options)
@@ -127,14 +130,14 @@ class Scrapper:
 
 
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final
 
     
     def get_imf_reports(self): 
         
         url = r'https://www.imf.org/en/Search#sort=relevancy&numberOfResults=20&f:type=[PUBS,COUNTRYREPS,ARTICLE4]'
-
+        self.wn.append('IMF - Reports.')
         return self.access_imf(url)
 
     def get_imf_wp(self):
@@ -465,10 +468,16 @@ class Scrapper:
     def get_bid_workingpapers(self): 
 
         today = self.get_month()
+        final = []
 
         options = webdriver.ChromeOptions()
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+
         driver = webdriver.Chrome(options=options)
         url = r'https://publications.iadb.org/en?f%5B0%5D=type%3A4633'
 
@@ -491,22 +500,21 @@ class Scrapper:
 
         titles =  [title.span.a for title in t if t is not None and title.span is not None] #Returns <a> tags 
         dates = [date.span for date in d if d is not None]#Returns <span> tag which contains month and year 
-        final = []
+
         for title, date in zip(titles, dates):
             if today[0:3] in date.string:
                 title, link =  title.string, 'https://publications.iadb.org' + str(title['href'])
                 final.append((title, link))
-                #print(title)
-                #print(link)
+                print(title)
+                print(link)
             else:
                 break
         
 
-        driver.quit()
         final.reverse()
         self.wn.append('BID - Working Papers')
         self.websites.append(final)
-
+        print('Success')
         return final 
 
     def get_speech_fsb(self):
@@ -1017,7 +1025,7 @@ class Scrapper:
             else:
                 break 
         final.reverse()
-        self.wn.append('FSB - Speeches')
+        self.wn.append('FSB - Reports')
         self.websites.append(final)
 
         return final 
@@ -1068,6 +1076,7 @@ class Scrapper:
 
 
     def get_wp_wb(self): #wp: working papers
+
         today = self.get_month_asnumber()
         print(today)
         final = []
@@ -1154,9 +1163,13 @@ class Scrapper:
 
         a = True
         while a: 
-            for date in dates_b:
-                if today not in date.text:
+            dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
+            for d in dates_b:
+                if today not in d.text:
                     a = False
+
+            if not a:
+                break 
             soup = BeautifulSoup(driver.page_source, 'html5lib')
             pages_to_scrap.append(soup)        
             next_page = driver.find_element(By.CSS_SELECTOR, '[rel = "next"]')
@@ -1183,7 +1196,7 @@ class Scrapper:
     
     def get_speeches_wb(self):
         today = self.get_month_asnumber()
-        today = '01' # just for testing
+        #today = '01' # just for testing
         final = []
         url = 'https://openknowledge.worldbank.org/communities/b6a50016-276d-56d3-bbe5-891c8d18db24?spc.sf=dc.date.issued&spc.sd=DESC'
 
@@ -1222,25 +1235,104 @@ class Scrapper:
 
         return final 
     
+
+    def get_imf_blogs(self):
+        today = self.get_month()[0:3]
+        final = []
+        url = 'https://www.imf.org/en/Blogs/archive'
+
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html5lib')
+
+        #titles = soup.find_all('h2', class_ = 'card-subtitle')
+        titles = soup.find_all('a', class_ = 'belt-link')
+
+        dates = soup.find_all('div', class_ = 'card-date mb-2 text-muted')
+
+        for title, date in zip(titles, dates): 
+            if today in date.string:
+                text, link = title.string, title['href']
+                final.append((text,link))
+        final.reverse()
+        self.wn.append('IMF - Blogs')
+        self.websites.append(final)
+
+        return final 
+
     #Methods to retrieve websites by category
     #------------------------------------------------------
     def get_all_speeches(self):
         
-        self.get_speech_bis()
-        self.get_speech_imf()
-        self.get_speech_fsb()
-        self.get_basel_speeches()
-        self.get_bisManagement_speeches()
+        speeches = [self.get_speech_bis,
+        self.get_speech_imf,
+        self.get_speech_fsb,
+        self.get_basel_speeches,
+        self.get_bisManagement_speeches]
+
+        for speech in speeches: 
+            for t in range(0,2):
+                try:
+                    speech()
+                    break 
+                except: 
+                    print(f'Error en la función: {speech}')
+        
+
 
     def get_all_reports(self):
-        self.get_report_wb()
-        #Falta agregar todos
+        
+        reports = [
+        self.get_imf_reports,
+        self.get_fem_reports,
+        self.get_oecd_reports,
+        self.get_bis_ifcreports,
+        self.get_bis_bsbreports,
+        self.get_bis_cpmireports,
+        self.get_bis_cgfsreports,
+        self.get_report_fsb,
+        self.get_report_wb
+        ]
+
+        for report in reports: 
+            for t in range(0,2):
+                try:
+                    report()
+                    break 
+                except: 
+                    print(f'Error en la función: {report}')
+        
     
     def get_all_papers(self):
-        self.get_bid_workingpapers()
-        #Falta agregar todos
+
+        papers = [
+        self.get_imf_wp,
+        self.get_bid_workingpapers,
+        self.get_bis_papers,
+        self.get_bis_workingpapers,
+        self.get_wp_wb,
+        self.get_wp_oecd,
+        self.get_imf_blogs
+        ]
+
+
+        for paper in papers: 
+            for t in range(0,5):
+                print(f'Intento: {t + 1}' )
+                try:
+                    paper()
+                    print('Exito')
+                    break 
+                except Exception as e: 
+                    print(f'Error en la función: {paper}. Con error: {e}')
+                    if t == 2:
+                        print('Intentos agotados.')
+                        return False
+        
+
 
 if __name__ == '__main__':
     h = Scrapper()
-    h.get_speeches_wb()
+    h.get_imf_wp()
 

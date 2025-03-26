@@ -16,7 +16,9 @@ websites_names = scrapper.get_webnames()
 #scrapper.get_fem_reports()
 #list = scrap_link()
 
-scrapper.get_all_speeches()
+scrapper.get_all_papers()
+
+
 @app.route('/')
 def main(): 
     return render_template('index.html', 
