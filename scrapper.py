@@ -210,7 +210,7 @@ class Scrapper:
             titles = page.find_all('div', class_ = 'title')
             dates = page.find_all('td', class_ = 'item_date')
             for i,n in zip(titles, dates):
-                print(i.a.span.string + i.a.span.next_sibling.string,n)
+                #print(i.a.span.string + i.a.span.next_sibling.string,n)
                 if today.lower() in n.string.lower(): 
                     link = r'https://www.bis.org' + i.a.get('href')
                     text = i.a.span.string + i.a.span.next_sibling.string
@@ -505,8 +505,8 @@ class Scrapper:
             if today[0:3] in date.string:
                 title, link =  title.string, 'https://publications.iadb.org' + str(title['href'])
                 final.append((title, link))
-                print(title)
-                print(link)
+                #print(title)
+                #print(link)
             else:
                 break
         
@@ -593,14 +593,14 @@ class Scrapper:
         #i = tile
         #n = date
         final = [] 
-        print(titles)
+        #print(titles)
         for i,n in zip(titles, dates):
 
             if today.lower() in n.string.lower(): 
                 link = r'https://www.bis.org' + i.a['href']
                 text = i.a.span.string + i.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -663,7 +663,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + i.a['href']
                 text = i.a.span.string + i.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -710,7 +710,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -756,7 +756,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -802,7 +802,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -848,7 +848,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -893,7 +893,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -938,7 +938,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -984,7 +984,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -1021,7 +1021,7 @@ class Scrapper:
             if today in date.string: 
                 title, link = title.string, title['href']
                 final.append((title, link))
-                print(title,link)
+                #print(title,link)
             else:
                 break 
         final.reverse()
@@ -1035,7 +1035,7 @@ class Scrapper:
 
     def get_report_wb(self):
         today = self.get_month_asnumber()
-        print(today)
+        #print(today)
         final = []
         url = 'https://openknowledge.worldbank.org/communities/06251f8a-62c2-59fb-add5-ec0993fc20d9?spc.sf=dc.date.issued&spc.sd=DESC&spc.page=1&spc.rpp=35'
 
@@ -1064,9 +1064,9 @@ class Scrapper:
 
         for title, date, desc in report_contents:
             if today in date.string[5:7] and 'report' in desc.string:
-                text, link = title.string, title['href']
+                text, link = title.string, 'https://openknowledge.worldbank.org' + title['href']
                 final.append((text,link))
-                print(title.string, title['href'])
+                #print(title.string, title['href'])
         
         final.reverse()
         self.wn.append('World Bank - Reports')
@@ -1078,7 +1078,7 @@ class Scrapper:
     def get_wp_wb(self): #wp: working papers
 
         today = self.get_month_asnumber()
-        print(today)
+        #print(today)
         final = []
         url = 'https://openknowledge.worldbank.org/communities/06251f8a-62c2-59fb-add5-ec0993fc20d9?spc.sf=dc.date.issued&spc.sd=DESC&spc.page=1&spc.rpp=35'
 
@@ -1107,9 +1107,9 @@ class Scrapper:
 
         for title, date, desc in report_contents:
             if today in date.string[5:7] and 'report' not in desc.string:
-                text, link = title.string, title['href']
+                text, link = title.string, 'https://openknowledge.worldbank.org' + title['href']
                 final.append((text,link))
-                print(title.string, title['href'])
+                #print(title.string, title['href'])
         
         final.reverse()
         self.wn.append('World Bank - Working Papers')
@@ -1183,7 +1183,7 @@ class Scrapper:
             for title, date in zip(titles, dates):
                 if today in date.string: 
                     text, link = title.a.string, title.a['href']
-                    print(text,link)
+                    #print(text,link)
                     final.append((text,link))
 
 
@@ -1227,7 +1227,7 @@ class Scrapper:
             if today in date.string[5:7]:
                 text, link = title.string, title['href']
                 final.append((text,link))
-                print(title.string, title['href'])
+                #print(title.string, title['href'])
         
         final.reverse()
         self.wn.append('World Bank - Speeches')
@@ -1253,7 +1253,7 @@ class Scrapper:
 
         for title, date in zip(titles, dates): 
             if today in date.string:
-                text, link = title.string, title['href']
+                text, link = title.string, 'https://www.imf.org' + title['href']
                 final.append((text,link))
         final.reverse()
         self.wn.append('IMF - Blogs')
@@ -1272,14 +1272,15 @@ class Scrapper:
         self.get_bisManagement_speeches]
 
         for speech in speeches: 
-            for t in range(0,2):
+            for t in range(0,3):
+                print(f'Intento: {t + 1} de la funcion {speech}')
                 try:
                     speech()
                     break 
                 except: 
                     print(f'Error en la función: {speech}')
         
-
+        print('Speeches extraction completed succesfully.')
 
     def get_all_reports(self):
         
@@ -1296,14 +1297,16 @@ class Scrapper:
         ]
 
         for report in reports: 
-            for t in range(0,2):
+            for t in range(0,3):
+                print(f'Intento: {t + 1} de la funcion {report}')
                 try:
                     report()
                     break 
                 except: 
                     print(f'Error en la función: {report}')
         
-    
+        print('Reports extraction completed succesfully.')
+
     def get_all_papers(self):
 
         papers = [
@@ -1319,7 +1322,7 @@ class Scrapper:
 
         for paper in papers: 
             for t in range(0,5):
-                print(f'Intento: {t + 1}' )
+                print(f'Intento: {t + 1} de la funcion {paper}')
                 try:
                     paper()
                     print('Exito')
@@ -1329,7 +1332,8 @@ class Scrapper:
                     if t == 2:
                         print('Intentos agotados.')
                         return False
-        
+                    
+        print('Reports extraction completed succesfully.') 
 
 
 if __name__ == '__main__':

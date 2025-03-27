@@ -15,9 +15,10 @@ websites_names = scrapper.get_webnames()
 #scrapper.get_speech_imf()
 #scrapper.get_fem_reports()
 #list = scrap_link()
-
+#scrapper.get_all_papers()
 scrapper.get_all_papers()
-
+scrapper.get_all_reports()
+scrapper.get_all_speeches()
 
 @app.route('/')
 def main(): 
