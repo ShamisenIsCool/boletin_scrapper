@@ -59,13 +59,14 @@ class Scrapper:
         days_of_month = str(calendar.monthrange(today.year, today.month)[1])
 
         #test parameter
-        date_parameter = f'&DateTo=12%2F{days_of_month}%2F{today.year - 1}&DateFrom=12%2F1%2F{today.year - 1}'
+        #date_parameter = f'&DateTo=12%2F{days_of_month}%2F{today.year - 1}&DateFrom=12%2F1%2F{today.year - 1}'
 
         #final parameter, uncommment when program is ready. Overrides previous parameter
         date_parameter = f'&DateTo={today.month}%2F{days_of_month}%2F{today.year}&DateFrom={today.month}%2F1%2F{today.year}'
 
         print(date_parameter)
-        url =r'https://www.imf.org/en/Publications/Search#sort=%40imfdate%20descending&numberOfResults=50&f:series=[WRKNGPPRS]'
+        #url =r'https://www.imf.org/en/Publications/Search#sort=%40imfdate%20descending&numberOfResults=50&f:series=[WRKNGPPRS]'
+        url = url
         url = url + date_parameter
 
         # instantiate a Chrome options object
@@ -239,6 +240,12 @@ class Scrapper:
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
 
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+
+
         
         # initialize an instance of the Chrome driver (browser) in headless mode
         driver = webdriver.Chrome(options=options)
@@ -248,7 +255,7 @@ class Scrapper:
 
 
 
-        driver.implicitly_wait(15)
+        driver.implicitly_wait(20)
         # URL of the web page to scrape
         #url = "https://www.scrapingcourse.com/javascript-rendering"
 
@@ -276,7 +283,7 @@ class Scrapper:
 
         pages_to_scrap = []
 
-        time.sleep(4)
+        time.sleep(5)
 
         soup = BeautifulSoup(driver.page_source, 'html5lib')
         pages_to_scrap.append(soup)                
@@ -359,7 +366,7 @@ class Scrapper:
                 except:
                     return final
                 
-            print('Success')
+            #print('Success')
             #Time the drivers wait for the website to load
             driver.find_elements(By.CLASS_NAME, 'chakra-link wef-spn4bz') #Searches element by class name, extracts LINK
             driver.find_elements(By.CLASS_NAME, 'chakra-text wef-usrq6c') #Extracts time of the element 
@@ -388,8 +395,8 @@ class Scrapper:
                 #print(text)
 
             final.reverse()
-            self.wn.append('FEM - Reports')
-            self.websites.append(final)
+            #self.wn.append('FEM - Reports')
+            #self.websites.append(final)
 
                    
     def get_oecd_reports(self): 
@@ -435,9 +442,12 @@ class Scrapper:
         #    print(date.text)
 
         a = True
+        first_page = True #the process will not stop unless the first page has already been recovered. 
+        #Next month's reports are published early so as to stop this from prematurely stopping the scrapping process, this variable is created with the end of being used
+        #by the condition to check whether to stop the loop. 
         while a: 
             for date in dates_b:
-                if today not in date.text:
+                if today not in date.text and not first_page:
                     a = False
             soup = BeautifulSoup(driver.page_source, 'html5lib')
             pages_to_scrap.append(soup)        
@@ -447,6 +457,7 @@ class Scrapper:
             time.sleep(2)
             e = driver.find_element(By.CSS_SELECTOR, '[rel="next"]') 
             dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
+            first_page = False 
 
         for page in pages_to_scrap: 
             titles = page.find_all('div', class_ = 'search-result-list-item__title')
@@ -514,7 +525,7 @@ class Scrapper:
         final.reverse()
         self.wn.append('BID - Working Papers')
         self.websites.append(final)
-        print('Success')
+        #print('Success')
         return final 
 
     def get_speech_fsb(self):
@@ -1048,25 +1059,33 @@ class Scrapper:
         options.add_argument("--headless=new")
         driver = webdriver.Chrome(options=options)
         driver.implicitly_wait(25)
+        stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+        )
         driver.get(url)
 
         driver.find_elements(By.CLASS_NAME, 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
         driver.find_elements(By.CLASS_NAME, 'item-list-date ng-star-inserted')   
-        #driver.find_element(By.CLASS_NAME, 'list-unstyled ng-star-inserted')
+        #driver.find_element(By.CLASS_NAME, 'content dont-break-out preserve-line-breaks truncated')
 
         soup = BeautifulSoup(driver.page_source, 'html5lib')
 
-        titles = soup.find_all('a', 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
-        dates = soup.find_all('span', 'item-list-date ng-star-inserted')
-        descs = soup.find_all('div', 'content dont-break-out preserve-line-breaks truncated') #Descriptions
-        
+        titles = soup.find_all('a', class_ = 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        dates = soup.find_all('span', class_ = 'item-list-date ng-star-inserted')
+        descs = soup.find_all('div', class_ = 'content dont-break-out preserve-line-breaks truncated') #Descriptions
         report_contents = zip(titles, dates, descs)
 
         for title, date, desc in report_contents:
-            if today in date.string[5:7] and 'report' in desc.string:
+            if today in date.string[5:7] and ('report' in desc.string):
                 text, link = title.string, 'https://openknowledge.worldbank.org' + title['href']
+                #print(text,link)
                 final.append((text,link))
-                #print(title.string, title['href'])
+  
         
         final.reverse()
         self.wn.append('World Bank - Reports')
@@ -1091,6 +1110,14 @@ class Scrapper:
         options.add_argument("--headless=new")
         driver = webdriver.Chrome(options=options)
         driver.implicitly_wait(25)
+        stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+        )
         driver.get(url)
 
         driver.find_elements(By.CLASS_NAME, 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
@@ -1099,9 +1126,9 @@ class Scrapper:
 
         soup = BeautifulSoup(driver.page_source, 'html5lib')
 
-        titles = soup.find_all('a', 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
-        dates = soup.find_all('span', 'item-list-date ng-star-inserted')
-        descs = soup.find_all('div', 'content dont-break-out preserve-line-breaks truncated') #Descriptions
+        titles = soup.find_all('a', class_ = 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        dates = soup.find_all('span', class_ = 'item-list-date ng-star-inserted')
+        descs = soup.find_all('div', class_ = 'content dont-break-out preserve-line-breaks truncated') #Descriptions
         
         report_contents = zip(titles, dates, descs)
 
@@ -1266,16 +1293,20 @@ class Scrapper:
     def get_all_speeches(self):
         
         speeches = [self.get_speech_bis,
-        self.get_speech_imf,
-        self.get_speech_fsb,
         self.get_basel_speeches,
-        self.get_bisManagement_speeches]
+        self.get_bisManagement_speeches,                  
+        self.get_speech_fsb,
+        self.get_speech_imf,
+        ]#The order of the elements in the list will be printed to the website in the
+        #exact same order so they should be listed in the desired order.
+
 
         for speech in speeches: 
             for t in range(0,3):
                 print(f'Intento: {t + 1} de la funcion {speech}')
                 try:
                     speech()
+                    print('Exito')
                     break 
                 except: 
                     print(f'Error en la función: {speech}')
@@ -1285,22 +1316,25 @@ class Scrapper:
     def get_all_reports(self):
         
         reports = [
-        self.get_imf_reports,
-        self.get_fem_reports,
-        self.get_oecd_reports,
+        self.get_report_wb,
         self.get_bis_ifcreports,
         self.get_bis_bsbreports,
         self.get_bis_cpmireports,
         self.get_bis_cgfsreports,
         self.get_report_fsb,
-        self.get_report_wb
-        ]
+        self.get_fem_reports,
+        self.get_imf_reports,
+        self.get_oecd_reports
+        ]#The order of the elements in the list will be printed to the website in the
+        #exact same order so they should be listed in the desired order.
+
 
         for report in reports: 
             for t in range(0,3):
                 print(f'Intento: {t + 1} de la funcion {report}')
                 try:
                     report()
+                    print('Exito')
                     break 
                 except: 
                     print(f'Error en la función: {report}')
@@ -1310,14 +1344,15 @@ class Scrapper:
     def get_all_papers(self):
 
         papers = [
-        self.get_imf_wp,
         self.get_bid_workingpapers,
+        self.get_wp_wb,
         self.get_bis_papers,
         self.get_bis_workingpapers,
-        self.get_wp_wb,
-        self.get_wp_oecd,
-        self.get_imf_blogs
-        ]
+        self.get_imf_blogs,
+        self.get_imf_wp,
+        self.get_wp_oecd
+        ] #The order of the elements in the list will be printed to the website in the
+        #exact same order so they should be listed in the desired order.
 
 
         for paper in papers: 
@@ -1333,10 +1368,10 @@ class Scrapper:
                         print('Intentos agotados.')
                         return False
                     
-        print('Reports extraction completed succesfully.') 
+        print('Papers extraction completed succesfully.') 
 
 
 if __name__ == '__main__':
     h = Scrapper()
-    h.get_imf_wp()
+    h.get_oecd_reports()
 
