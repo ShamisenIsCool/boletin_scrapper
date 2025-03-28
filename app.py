@@ -1,6 +1,7 @@
 from flask import Flask, render_template, url_for
 from test import scrap_link, get_month
 from scrapper import Scrapper
+from flask_apscheduler import APScheduler
 app = Flask(__name__)
 
 
@@ -8,9 +9,20 @@ scrapper = Scrapper()
 
 websites_names = scrapper.get_webnames()
 
-scrapper.get_all_reports()
-scrapper.get_all_papers()
-scrapper.get_all_speeches()
+#scrapper.get_all_reports()
+#scrapper.get_all_papers()
+#scrapper.get_all_speeches()
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+scheduler.start()
+
+@scheduler.task('cron', hour='*/6')  # Runs every 6 hours
+def scheduled_task():
+    scrapper.get_all_reports()
+    scrapper.get_all_papers()
+    scrapper.get_all_speeches()    
+    print("Task executed.")
 
 @app.route('/')
 def main(): 
