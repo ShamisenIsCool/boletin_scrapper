@@ -10,7 +10,7 @@ websites_names = scrapper.get_webnames()
 
 #scrapper.get_all_papers()
 #scrapper.get_all_reports()
-scrapper.get_all_speeches()
+#scrapper.get_all_speeches()
 
 @app.route('/')
 def main(): 
