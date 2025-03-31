@@ -12,7 +12,6 @@ import requests #to scrap websites who do not need javascript to scrap their htm
 from selenium_stealth import stealth
 
 #final equals a list of tuples, each tuples equals a pair, each pair consists of a title (first) and a link (second)
-
 #All BIS websites' functions should flag these options to properly adress speed related issues observed when accesing a BIS website.
 #options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
 #options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
@@ -60,13 +59,14 @@ class Scrapper:
         days_of_month = str(calendar.monthrange(today.year, today.month)[1])
 
         #test parameter
-        date_parameter = f'&DateTo=12%2F{days_of_month}%2F{today.year - 1}&DateFrom=12%2F1%2F{today.year - 1}'
+        #date_parameter = f'&DateTo=12%2F{days_of_month}%2F{today.year - 1}&DateFrom=12%2F1%2F{today.year - 1}'
 
         #final parameter, uncommment when program is ready. Overrides previous parameter
         date_parameter = f'&DateTo={today.month}%2F{days_of_month}%2F{today.year}&DateFrom={today.month}%2F1%2F{today.year}'
 
         print(date_parameter)
-        url =r'https://www.imf.org/en/Publications/Search#sort=%40imfdate%20descending&numberOfResults=50&f:series=[WRKNGPPRS]'
+        #url =r'https://www.imf.org/en/Publications/Search#sort=%40imfdate%20descending&numberOfResults=50&f:series=[WRKNGPPRS]'
+        url = url
         url = url + date_parameter
 
         # instantiate a Chrome options object
@@ -74,6 +74,10 @@ class Scrapper:
 
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.        
         
         # initialize an instance of the Chrome driver (browser) in headless mode
         driver = webdriver.Chrome(options=options)
@@ -127,14 +131,14 @@ class Scrapper:
 
 
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final
 
     
     def get_imf_reports(self): 
         
         url = r'https://www.imf.org/en/Search#sort=relevancy&numberOfResults=20&f:type=[PUBS,COUNTRYREPS,ARTICLE4]'
-
+        self.wn.append('IMF - Reports.')
         return self.access_imf(url)
 
     def get_imf_wp(self):
@@ -207,7 +211,7 @@ class Scrapper:
             titles = page.find_all('div', class_ = 'title')
             dates = page.find_all('td', class_ = 'item_date')
             for i,n in zip(titles, dates):
-                print(i.a.span.string + i.a.span.next_sibling.string,n)
+                #print(i.a.span.string + i.a.span.next_sibling.string,n)
                 if today.lower() in n.string.lower(): 
                     link = r'https://www.bis.org' + i.a.get('href')
                     text = i.a.span.string + i.a.span.next_sibling.string
@@ -236,6 +240,12 @@ class Scrapper:
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
 
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+
+
         
         # initialize an instance of the Chrome driver (browser) in headless mode
         driver = webdriver.Chrome(options=options)
@@ -245,7 +255,7 @@ class Scrapper:
 
 
 
-        driver.implicitly_wait(15)
+        driver.implicitly_wait(20)
         # URL of the web page to scrape
         #url = "https://www.scrapingcourse.com/javascript-rendering"
 
@@ -273,7 +283,7 @@ class Scrapper:
 
         pages_to_scrap = []
 
-        time.sleep(4)
+        time.sleep(5)
 
         soup = BeautifulSoup(driver.page_source, 'html5lib')
         pages_to_scrap.append(soup)                
@@ -356,7 +366,7 @@ class Scrapper:
                 except:
                     return final
                 
-            print('Success')
+            #print('Success')
             #Time the drivers wait for the website to load
             driver.find_elements(By.CLASS_NAME, 'chakra-link wef-spn4bz') #Searches element by class name, extracts LINK
             driver.find_elements(By.CLASS_NAME, 'chakra-text wef-usrq6c') #Extracts time of the element 
@@ -385,8 +395,8 @@ class Scrapper:
                 #print(text)
 
             final.reverse()
-            self.wn.append('FEM - Reports')
-            self.websites.append(final)
+            #self.wn.append('FEM - Reports')
+            #self.websites.append(final)
 
                    
     def get_oecd_reports(self): 
@@ -418,7 +428,7 @@ class Scrapper:
 
         url = r'https://www.oecd.org/en/search/publications.html?orderBy=mostRecent&page=0&facetTags=oecd-content-types%3Apublications%2Freports%2Coecd-languages%3Aen&minPublicationYear=2024&maxPublicationYear=2025'
         driver.get(url)
-        driver.implicitly_wait(10)
+        driver.implicitly_wait(20)
             
         driver.find_elements(By.CLASS_NAME, 'search-result-list-item__title')
         dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
@@ -432,9 +442,12 @@ class Scrapper:
         #    print(date.text)
 
         a = True
+        first_page = True #the process will not stop unless the first page has already been recovered. 
+        #Next month's reports are published early so as to stop this from prematurely stopping the scrapping process, this variable is created with the end of being used
+        #by the condition to check whether to stop the loop. 
         while a: 
             for date in dates_b:
-                if today not in date.text:
+                if today not in date.text and not first_page:
                     a = False
             soup = BeautifulSoup(driver.page_source, 'html5lib')
             pages_to_scrap.append(soup)        
@@ -444,6 +457,7 @@ class Scrapper:
             time.sleep(2)
             e = driver.find_element(By.CSS_SELECTOR, '[rel="next"]') 
             dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
+            first_page = False 
 
         for page in pages_to_scrap: 
             titles = page.find_all('div', class_ = 'search-result-list-item__title')
@@ -451,7 +465,9 @@ class Scrapper:
             
             for title, date in zip(titles, dates):
                 if today in date.string: 
+
                     text, link = title.a.string, title.a['href']
+                    #print(text, link)
                     final.append((text,link))
 
 
@@ -463,10 +479,16 @@ class Scrapper:
     def get_bid_workingpapers(self): 
 
         today = self.get_month()
+        final = []
 
         options = webdriver.ChromeOptions()
         # set the options to use Chrome in headless mode
         options.add_argument("--headless=new")
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+
         driver = webdriver.Chrome(options=options)
         url = r'https://publications.iadb.org/en?f%5B0%5D=type%3A4633'
 
@@ -489,7 +511,7 @@ class Scrapper:
 
         titles =  [title.span.a for title in t if t is not None and title.span is not None] #Returns <a> tags 
         dates = [date.span for date in d if d is not None]#Returns <span> tag which contains month and year 
-        final = []
+
         for title, date in zip(titles, dates):
             if today[0:3] in date.string:
                 title, link =  title.string, 'https://publications.iadb.org' + str(title['href'])
@@ -500,11 +522,10 @@ class Scrapper:
                 break
         
 
-        driver.quit()
         final.reverse()
         self.wn.append('BID - Working Papers')
         self.websites.append(final)
-
+        #print('Success')
         return final 
 
     def get_speech_fsb(self):
@@ -583,14 +604,14 @@ class Scrapper:
         #i = tile
         #n = date
         final = [] 
-        print(titles)
+        #print(titles)
         for i,n in zip(titles, dates):
 
             if today.lower() in n.string.lower(): 
                 link = r'https://www.bis.org' + i.a['href']
                 text = i.a.span.string + i.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -653,7 +674,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + i.a['href']
                 text = i.a.span.string + i.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -700,7 +721,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -746,7 +767,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -792,7 +813,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -838,7 +859,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -883,7 +904,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -928,7 +949,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -974,7 +995,7 @@ class Scrapper:
                 link = r'https://www.bis.org' + title.a['href']
                 text = title.a.span.string + title.a.span.next_sibling.string
                 pair = (text, link)
-                print(pair)
+                #print(pair)
                 final.append(pair)
             else:
                 break 
@@ -1000,7 +1021,7 @@ class Scrapper:
         titles = soup.find_all('div', class_ = 'post-title')
 
         main_container = soup.find('div', class_ = 'wp-bootstrap-blocks-row') #it gets main container
-        main_container = main_container.find('div', class_ = 'display-posts-listing') #then it filters for child container where we want to extract dates from 
+        main_container = main_container.find('div', class_ = 'display-posts-listing') #then it filters for child container where we'd like to extract dates from 
         dates = main_container.find_all('div', class_ = 'post-date')
 
         titles = [title.h3.a for title in titles if title.h3 is not None]
@@ -1011,22 +1032,351 @@ class Scrapper:
             if today in date.string: 
                 title, link = title.string, title['href']
                 final.append((title, link))
-                print(title,link)
+                #print(title,link)
             else:
                 break 
         final.reverse()
-        self.wn.append('FSB - Speeches')
+        self.wn.append('FSB - Reports')
         self.websites.append(final)
 
         return final 
+
+    def get_month_asnumber(self):
+        return str(date.today())[5:7]
+
+    def get_report_wb(self):
+        today = self.get_month_asnumber()
+        #print(today)
+        final = []
+        url = 'https://openknowledge.worldbank.org/communities/06251f8a-62c2-59fb-add5-ec0993fc20d9?spc.sf=dc.date.issued&spc.sd=DESC&spc.page=1&spc.rpp=35'
+
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(25)
+        stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+        )
+        driver.get(url)
+
+        driver.find_elements(By.CLASS_NAME, 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        driver.find_elements(By.CLASS_NAME, 'item-list-date ng-star-inserted')   
+        #driver.find_element(By.CLASS_NAME, 'content dont-break-out preserve-line-breaks truncated')
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+        titles = soup.find_all('a', class_ = 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        dates = soup.find_all('span', class_ = 'item-list-date ng-star-inserted')
+        descs = soup.find_all('div', class_ = 'content dont-break-out preserve-line-breaks truncated') #Descriptions
+        report_contents = zip(titles, dates, descs)
+
+        for title, date, desc in report_contents:
+            if today in date.string[5:7] and ('report' in desc.string):
+                text, link = title.string, 'https://openknowledge.worldbank.org' + title['href']
+                #print(text,link)
+                final.append((text,link))
+  
+        
+        final.reverse()
+        self.wn.append('World Bank - Reports')
+        self.websites.append(final) 
+
+        return final 
+
+
+    def get_wp_wb(self): #wp: working papers
+
+        today = self.get_month_asnumber()
+        #print(today)
+        final = []
+        url = 'https://openknowledge.worldbank.org/communities/06251f8a-62c2-59fb-add5-ec0993fc20d9?spc.sf=dc.date.issued&spc.sd=DESC&spc.page=1&spc.rpp=35'
+
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(25)
+        stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+        )
+        driver.get(url)
+
+        driver.find_elements(By.CLASS_NAME, 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        driver.find_elements(By.CLASS_NAME, 'item-list-date ng-star-inserted')   
+        #driver.find_element(By.CLASS_NAME, 'list-unstyled ng-star-inserted')
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+        titles = soup.find_all('a', class_ = 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        dates = soup.find_all('span', class_ = 'item-list-date ng-star-inserted')
+        descs = soup.find_all('div', class_ = 'content dont-break-out preserve-line-breaks truncated') #Descriptions
+        
+        report_contents = zip(titles, dates, descs)
+
+        for title, date, desc in report_contents:
+            if today in date.string[5:7] and 'report' not in desc.string:
+                text, link = title.string, 'https://openknowledge.worldbank.org' + title['href']
+                final.append((text,link))
+                #print(title.string, title['href'])
+        
+        final.reverse()
+        self.wn.append('World Bank - Working Papers')
+        self.websites.append(final)           
+
+        return final
+    
+
+    def get_wp_oecd(self): 
+        today = self.get_month()[0:3]
+        final = []
+        options = webdriver.ChromeOptions()
+
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        #options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        #options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        #options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        #options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+
+
+        # initialize an instance of the Chrome driver (browser) in headless mode
+        driver = webdriver.Chrome(options=options)
+        url = r'https://www.oecd.org/en/publications/reports.html?orderBy=mostRecent&page=0&facetTags=oecd-content-types%3Apublications%2Fworking-papers'
+
+        #makes the scrapper more stealthy in order to bypass Cloudfare false flagging 
+        stealth(driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+        )
+        
+
+        driver.get(url)
+        driver.implicitly_wait(15)
+            
+        driver.find_elements(By.CLASS_NAME, 'search-result-list-item__title')
+        dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
+
+        pages_to_scrap = []
+        #driver.execute_script("window.scrollTo(0, (document.body.scrollHeight))") #scrolls to the bottom of the page
+        
+        #e = driver.find_element(By.CSS_SELECTOR, '[aria-label="Next page"]')
+
+
+        #for date in dates_b:
+        #    print(date.text)
+
+        a = True
+        first_page = True #the process will not stop unless the first page has already been recovered. 
+        #Next month's reports are published early so as to stop the script from prematurely stopping the scrapping process, this variable is created with the end of being used
+        #by the condition to check whether to stop the loop early. 
+
+        while a: 
+            dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
+            for d in dates_b:
+                if today not in d.text and not first_page:
+                    a = False
+
+            if not a:
+                break 
+            soup = BeautifulSoup(driver.page_source, 'html5lib')
+            pages_to_scrap.append(soup)        
+            next_page = driver.find_element(By.CSS_SELECTOR, '[rel = "next"]')
+            driver.execute_script("arguments[0].click();", next_page)
+            time.sleep(2)
+            first_page = False 
+
+        for page in pages_to_scrap: 
+            titles = page.find_all('div', class_ = 'search-result-list-item__title')
+            dates = page.find_all('span', class_ = 'search-result-list-item__date')            
+            
+            for title, date in zip(titles, dates):
+                if today in date.string: 
+                    text, link = title.a.string, title.a['href']
+                    #print(text,link)
+                    final.append((text,link))
+
+
+
+        final.reverse()
+        self.wn.append('OECD - Working Papers')
+        self.websites.append(final)
+
+        return final
+    
+    def get_speeches_wb(self):
+        today = self.get_month_asnumber()
+        #today = '01' # just for testing
+        final = []
+        url = 'https://openknowledge.worldbank.org/communities/b6a50016-276d-56d3-bbe5-891c8d18db24?spc.sf=dc.date.issued&spc.sd=DESC'
+
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        # set the options to use Chrome in headless mode
+        options.add_argument("--headless=new")
+        driver = webdriver.Chrome(options=options)
+        driver.implicitly_wait(25)
+        driver.get(url)
+
+        driver.find_elements(By.CLASS_NAME, 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        driver.find_elements(By.CLASS_NAME, 'item-list-date ng-star-inserted')   
+        #driver.find_element(By.CLASS_NAME, 'list-unstyled ng-star-inserted')
+
+        soup = BeautifulSoup(driver.page_source, 'html5lib')
+
+        titles = soup.find_all('a', 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
+        dates = soup.find_all('span', 'item-list-date ng-star-inserted')
+        
+        
+        report_contents = zip(titles, dates)
+
+        for title, date in report_contents:
+            if today in date.string[5:7]:
+                text, link = title.string, title['href']
+                final.append((text,link))
+                #print(title.string, title['href'])
+        
+        final.reverse()
+        self.wn.append('World Bank - Speeches')
+        self.websites.append(final) 
+
+        return final 
+    
+
+    def get_imf_blogs(self):
+        today = self.get_month()[0:3]
+        final = []
+        url = 'https://www.imf.org/en/Blogs/archive'
+
+
+        response = requests.get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'html5lib')
+
+        #titles = soup.find_all('h2', class_ = 'card-subtitle')
+        titles = soup.find_all('a', class_ = 'belt-link')
+
+        dates = soup.find_all('div', class_ = 'card-date mb-2 text-muted')
+
+        for title, date in zip(titles, dates): 
+            if today in date.string:
+                text, link = title.string, 'https://www.imf.org' + title['href']
+                final.append((text,link))
+        final.reverse()
+        self.wn.append('IMF - Blogs')
+        self.websites.append(final)
+
+        return final 
+
+    #Methods to retrieve websites by category
+    #------------------------------------------------------
     def get_all_speeches(self):
-        self.get_speech_bis()
-        self.get_speech_imf()
-        self.get_speech_fsb()
-        self.get_basel_speeches()
-        self.get_bisManagement_speeches()
+        
+        speeches = [self.get_speech_bis,
+        self.get_basel_speeches,
+        self.get_bisManagement_speeches,                  
+        self.get_speech_fsb,
+        self.get_speech_imf,
+        ]#The order of the elements in the list will be printed to the website in the
+        #exact same order so they should be listed in the desired order.
+
+
+        for speech in speeches: 
+            for t in range(0,3):
+                print(f'Intento: {t + 1} de la funcion {speech}')
+                try:
+                    speech()
+                    print('Exito')
+                    break 
+                except: 
+                    print(f'Error en la función: {speech}')
+        
+        print('Speeches extraction completed succesfully.')
+
+    def get_all_reports(self):
+        
+        reports = [
+        self.get_report_wb,
+        self.get_bis_ifcreports,
+        self.get_bis_bsbreports,
+        self.get_bis_cpmireports,
+        self.get_bis_cgfsreports,
+        self.get_report_fsb,
+        self.get_fem_reports,
+        self.get_imf_reports,
+        self.get_oecd_reports
+        ]#The order of the elements in the list will be printed to the website in the
+        #exact same order so they should be listed in the desired order.
+
+
+        for report in reports: 
+            for t in range(0,3):
+                print(f'Intento: {t + 1} de la funcion {report}')
+                try:
+                    report()
+                    print('Exito')
+                    break 
+                except: 
+                    print(f'Error en la función: {report}')
+        
+        print('Reports extraction completed succesfully.')
+
+    def get_all_papers(self):
+
+        papers = [
+        self.get_bid_workingpapers,
+        self.get_wp_wb,
+        self.get_bis_papers,
+        self.get_bis_workingpapers,
+        self.get_imf_blogs,
+        self.get_imf_wp,
+        self.get_wp_oecd
+        ] #The order of the elements in the list will be printed to the website in the
+        #exact same order so they should be listed in the desired order.
+
+
+        for paper in papers: 
+            for t in range(0,5):
+                print(f'Intento: {t + 1} de la funcion {paper}')
+                try:
+                    paper()
+                    print('Exito')
+                    break 
+                except Exception as e: 
+                    print(f'Error en la función: {paper}. Con error: {e}')
+                    if t == 2:
+                        print('Intentos agotados.')
+                        return False
+                    
+        print('Papers extraction completed succesfully.') 
+
 
 if __name__ == '__main__':
     h = Scrapper()
-    h.get_report_fsb()
+    h.get_wp_oecd()
 
