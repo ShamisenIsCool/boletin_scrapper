@@ -1189,10 +1189,14 @@ class Scrapper:
         #    print(date.text)
 
         a = True
+        first_page = True #the process will not stop unless the first page has already been recovered. 
+        #Next month's reports are published early so as to stop the script from prematurely stopping the scrapping process, this variable is created with the end of being used
+        #by the condition to check whether to stop the loop early. 
+
         while a: 
             dates_b = driver.find_elements(By.CLASS_NAME, 'search-result-list-item__date')
             for d in dates_b:
-                if today not in d.text:
+                if today not in d.text and not first_page:
                     a = False
 
             if not a:
@@ -1202,6 +1206,7 @@ class Scrapper:
             next_page = driver.find_element(By.CSS_SELECTOR, '[rel = "next"]')
             driver.execute_script("arguments[0].click();", next_page)
             time.sleep(2)
+            first_page = False 
 
         for page in pages_to_scrap: 
             titles = page.find_all('div', class_ = 'search-result-list-item__title')
@@ -1373,5 +1378,5 @@ class Scrapper:
 
 if __name__ == '__main__':
     h = Scrapper()
-    h.get_oecd_reports()
+    h.get_wp_oecd()
 

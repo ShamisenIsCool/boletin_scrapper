@@ -15,9 +15,9 @@ websites_names = scrapper.get_webnames()
 
 scheduler = APScheduler()
 scheduler.init_app(app)
-scheduler.start()
 
-@scheduler.task('cron', hour='*/6')  # Runs every 6 hours
+
+@scheduler.task('cron', hour='*/4', id ='scrap')  # Runs every 6 hours
 def scheduled_task():
     scrapper.get_all_reports()
     scrapper.get_all_papers()
@@ -37,4 +37,9 @@ def main():
 
 
 if __name__ == "__main__": 
+    
+    scheduler.start()
+    print(scheduler.get_job(id='scrap'))
+    scheduler.run_job(id = 'scrap')
+    print(scheduler.get_job(id='scrap'))
     app.run(debug=False)
