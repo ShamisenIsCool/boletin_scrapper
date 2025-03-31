@@ -40,6 +40,6 @@ if __name__ == "__main__":
     
     scheduler.start()
     print(scheduler.get_job(id='scrap'))
-    scheduler.run_job(id = 'scrap')
+    #scheduler.run_job(id = 'scrap') #just uncomment for testing purposes. It will run the job now instead of the scheduled hour. 
     print(scheduler.get_job(id='scrap'))
     app.run(debug=False)
