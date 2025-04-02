@@ -868,7 +868,7 @@ class Scrapper:
 
         self.wn.append('BIS - IFC Reports')
         self.websites.append(final)
-        driver.quit()
+        
         return final  
     def get_bis_bsbreports(self):
         today = self.get_month()[0:3] #Gets current month 
@@ -1091,6 +1091,7 @@ class Scrapper:
         self.wn.append('World Bank - Reports')
         self.websites.append(final) 
 
+        #driver.quit()
         return final 
 
 
