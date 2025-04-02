@@ -1341,8 +1341,8 @@ class Scrapper:
                     report()
                     print('Exito')
                     break 
-                except: 
-                    print(f'Error en la función: {report}')
+                except Exception as e: 
+                    print(f'Error en la función: {report} con error {e}')
         
         print('Reports extraction completed succesfully.')
 
