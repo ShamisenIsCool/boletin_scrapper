@@ -32,9 +32,31 @@ class Scrapper:
 
         self.websites = list()
         self.wn = list()
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        options.add_argument("--headless=new")
+        self.driver = webdriver.Chrome(options=options)
+        self.driver.implicitly_wait(25)
+        stealth(self.driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+        )       
 
+        
+    def close_window(self):
+        driver = self.driver
+        driver.close()
 
-
+    def quit_browser(self):
+        driver = self.driver
+        driver.quit()
     def get_webnames(self):
         return self.wn
 
@@ -70,24 +92,11 @@ class Scrapper:
         url = url + date_parameter
 
         # instantiate a Chrome options object
-        options = webdriver.ChromeOptions()
-
+ 
         # set the options to use Chrome in headless mode
-        options.add_argument("--headless=new")
-        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
-        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
-        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
-        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.        
-        
-        # initialize an instance of the Chrome driver (browser) in headless mode
-        driver = webdriver.Chrome(options=options)
+        driver = self.driver 
         # instantiate Chrome WebDriver without headless mode
         #driver = webdriver.Chrome()
-
-
-
-
-        driver.implicitly_wait(20)
         # URL of the web page to scrape
         #url = "https://www.scrapingcourse.com/javascript-rendering"
 
@@ -223,7 +232,7 @@ class Scrapper:
 
         self.wn.append('BIS - Speeches')
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final
     
     def get_speech_imf(self):
@@ -315,7 +324,7 @@ class Scrapper:
 
         self.wn.append('IMF - Speeches and Transcripts')
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final 
 
     def get_fem_reports(self): 
@@ -338,19 +347,7 @@ class Scrapper:
         #Inicio de Loop. extrae el html desde la pagina 1 hasta la 4. Si la fecha no coincide con la de hoy, se finaliza el proceso de extracción. 
         for page in range(1,5):
 
-            options = webdriver.ChromeOptions()
-
-        # set the options to use Chrome in headless mode
-            options.add_argument("--headless=new")
-            options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
-            options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
-            options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
-            options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
-
-
-        # initialize an instance of the Chrome driver (browser) in headless mode
-            driver = webdriver.Chrome(options=options)
-            driver.implicitly_wait(15)
+            driver = self.driver 
 
             number_page = page
             url = f'https://www.weforum.org/publications/?types=Whitepaper%2CReport&page={number_page}'
@@ -360,8 +357,9 @@ class Scrapper:
                 driver.get(url)
             except: 
                 try:
-                    driver.quit()
-                    driver = webdriver.Chrome(options=options)
+                    #driver.quit()
+                    driver.close()
+                    driver = self.driver
                     driver.implicitly_wait(15)
                 except:
                     return final
@@ -383,7 +381,7 @@ class Scrapper:
                     final.reverse()
                     self.wn.append('FEM (WEF) - White papers reports')
                     self.websites.append(final)
-                    driver.quit()
+                    #driver.quit()
                     return final 
                 
 
@@ -402,28 +400,7 @@ class Scrapper:
     def get_oecd_reports(self): 
         today = self.get_month()[0:3]
         final = []
-        options = webdriver.ChromeOptions()
-
-        # set the options to use Chrome in headless mode
-        options.add_argument("--headless=new")
-        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
-        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
-        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
-        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
-
-
-        # initialize an instance of the Chrome driver (browser) in headless mode
-        driver = webdriver.Chrome(options=options)
-
-        #makes the scrapper more stealthy in order to bypass Cloudfare false flagging 
-        stealth(driver,
-        languages=["en-US", "en"],
-        vendor="Google Inc.",
-        platform="Win32",
-        webgl_vendor="Intel Inc.",
-        renderer="Intel Iris OpenGL Engine",
-        fix_hairline=True,
-        )
+        driver = self.driver 
         
 
         url = r'https://www.oecd.org/en/search/publications.html?orderBy=mostRecent&page=0&facetTags=oecd-content-types%3Apublications%2Freports%2Coecd-languages%3Aen&minPublicationYear=2024&maxPublicationYear=2025'
@@ -621,7 +598,7 @@ class Scrapper:
 
         self.wn.append('BIS - Basel Speeches')
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final        
     def get_bisManagement_speeches(self): 
 
@@ -684,7 +661,7 @@ class Scrapper:
 
         self.wn.append('BIS - Management Speeches')
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final    
 
     def get_bis_workingpapers(self):
@@ -730,7 +707,7 @@ class Scrapper:
 
         self.wn.append('BIS - Working Papers')
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final   
     
     def get_bis_papers(self):
@@ -776,7 +753,7 @@ class Scrapper:
 
         self.wn.append('BIS - Papers')
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final  
 
     def get_bis_workingpapers(self):
@@ -822,22 +799,15 @@ class Scrapper:
 
         self.wn.append('BIS - Working Papers')
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final   
     
     def get_bis_ifcreports(self):
         today = self.get_month()[0:3] #Gets current month 
 
         url = r'https://www.bis.org/ifc_reports/index.htm'
-        options = webdriver.ChromeOptions()
-        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
-        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
-        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
-        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
-        # set the options to use Chrome in headless mode
-        options.add_argument("--headless=new")
-        driver = webdriver.Chrome(options=options)
-        driver.implicitly_wait(10)        
+
+        driver = self.driver       
         driver.get(url)
         driver.find_elements(By.TAG_NAME, 'p')
         driver.find_elements(By.TAG_NAME, 'tr')
@@ -869,20 +839,14 @@ class Scrapper:
         self.wn.append('BIS - IFC Reports')
         self.websites.append(final)
         
+        
         return final  
     def get_bis_bsbreports(self):
         today = self.get_month()[0:3] #Gets current month 
 
         url = r'https://www.bis.org/bcbs/publications.htm?m=75'
-        options = webdriver.ChromeOptions()
-        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
-        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
-        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
-        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
-        # set the options to use Chrome in headless mode
-        options.add_argument("--headless=new")
-        driver = webdriver.Chrome(options=options)
-        driver.implicitly_wait(10)        
+ 
+        driver = self.driver   
         driver.get(url)
         driver.find_elements(By.TAG_NAME, 'p')
         driver.find_elements(By.TAG_NAME, 'tr')
@@ -913,21 +877,15 @@ class Scrapper:
 
         self.wn.append('BIS - BSB Reports')
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
+       
         return final  
     def get_bis_cpmireports(self):
         today = self.get_month()[0:3] #Gets current month 
 
         url = r'https://www.bis.org/cpmi_publs/index.htm?m=116'
-        options = webdriver.ChromeOptions()
-        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
-        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
-        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
-        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
-        # set the options to use Chrome in headless mode
-        options.add_argument("--headless=new")
-        driver = webdriver.Chrome(options=options)
-        driver.implicitly_wait(10)        
+
+        driver = self.driver 
         driver.get(url)
         driver.find_elements(By.TAG_NAME, 'p')
         driver.find_elements(By.TAG_NAME, 'tr')
@@ -958,22 +916,14 @@ class Scrapper:
 
         self.wn.append('BIS - CPMI Reports')
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final      
 
     def get_bis_cgfsreports(self):
         today = self.get_month()[0:3] #Gets current month 
 
         url = r'https://www.bis.org/cgfs_publs/index.htm?m=103'
-        options = webdriver.ChromeOptions()
-        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
-        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
-        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
-        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
-        # set the options to use Chrome in headless mode
-        options.add_argument("--headless=new")
-        driver = webdriver.Chrome(options=options)
-        driver.implicitly_wait(10)        
+        driver = self.driver  
         driver.get(url)
         driver.find_elements(By.TAG_NAME, 'p')
         driver.find_elements(By.TAG_NAME, 'tr')
@@ -1004,7 +954,7 @@ class Scrapper:
 
         self.wn.append('BIS - CGFS Reports')
         self.websites.append(final)
-        driver.quit()
+        #driver.quit()
         return final          
 
 
@@ -1050,23 +1000,7 @@ class Scrapper:
         final = []
         url = 'https://openknowledge.worldbank.org/communities/06251f8a-62c2-59fb-add5-ec0993fc20d9?spc.sf=dc.date.issued&spc.sd=DESC&spc.page=1&spc.rpp=35'
 
-        options = webdriver.ChromeOptions()
-        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
-        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
-        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
-        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
-        # set the options to use Chrome in headless mode
-        options.add_argument("--headless=new")
-        driver = webdriver.Chrome(options=options)
-        driver.implicitly_wait(25)
-        stealth(driver,
-        languages=["en-US", "en"],
-        vendor="Google Inc.",
-        platform="Win32",
-        webgl_vendor="Intel Inc.",
-        renderer="Intel Iris OpenGL Engine",
-        fix_hairline=True,
-        )
+        driver = self.driver
         driver.get(url)
 
         driver.find_elements(By.CLASS_NAME, 'lead item-list-title dont-break-out ng-star-inserted notruncatable')
@@ -1143,7 +1077,7 @@ class Scrapper:
         self.wn.append('World Bank - Working Papers')
         self.websites.append(final)           
 
-        driver.quit()
+        #driver.quit()
         return final
     
 

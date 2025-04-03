@@ -20,10 +20,8 @@ scheduler.init_app(app)
 
 @scheduler.task('cron', hour='*/4', id ='scrap')  # Runs every 6 hours
 def scheduled_task():
-    try: 
-        scrapper.get_all_reports()
-    except Exception as e:
-        print(f'Error: {e}')
+    scrapper.get_all_reports()
+
     print("Task executed.")
 
 @app.route('/')
@@ -39,17 +37,16 @@ def main():
 
 
 scheduler.start()
-#print(scheduler.get_job(id='scrap'))
+print(scheduler.get_job(id='scrap'))
 try:
     scheduler.run_job(id = 'scrap') #just uncomment for testing purposes. It will run the job now instead of the scheduled hour.
 except Exception as e:
     print(f'Error: {e}') 
-#print(scheduler.get_job(id='scrap'))
+
 
 if __name__ == "__main__": 
     
     scheduler.start()
     print(scheduler.get_job(id='scrap'))
     scheduler.run_job(id = 'scrap') #just uncomment for testing purposes. It will run the job now instead of the scheduled hour. 
-    print(scheduler.get_job(id='scrap'))
     app.run(debug=False)
