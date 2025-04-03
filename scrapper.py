@@ -1166,12 +1166,32 @@ class Scrapper:
                     break 
                 except Exception as e: 
                     print(f'Error en la función: {paper}. Con error: {e}')
-                    if t == 2:
+                    self.reboot_driver()
+                    time.sleep(2)
+                    if t == 4:
                         print('Intentos agotados.')
                         return False
                     
         print('Papers extraction completed succesfully.') 
 
+    def reboot_driver(self):
+        self.driver.quit()
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
+        options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
+        options.add_argument("--disable-extensions") # Prevents Chrome extensions from loading, which saves memory and speeds up the browser's startup time.
+        options.add_argument("--disable-dev-shm-usage") #Chrome uses shared memory (/dev/shm) for browser processes. This flag disables that usage, which helps prevent crashes in environments with limited memory like Docker containers.
+        options.add_argument("--headless=new")
+        self.driver = webdriver.Chrome(options=options)
+        self.driver.implicitly_wait(25)
+        stealth(self.driver,
+        languages=["en-US", "en"],
+        vendor="Google Inc.",
+        platform="Win32",
+        webgl_vendor="Intel Inc.",
+        renderer="Intel Iris OpenGL Engine",
+        fix_hairline=True,
+        )       
 
 if __name__ == '__main__':
     h = Scrapper()

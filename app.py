@@ -20,9 +20,9 @@ scheduler.init_app(app)
 
 @scheduler.task('cron', hour='*/4', id ='scrap')  # Runs every 4 hours
 def scheduled_task():
-    scrapper.get_all_reports()
+    #scrapper.get_all_reports()
     scrapper.get_all_papers()
-    scrapper.get_all_speeches()
+    #scrapper.get_all_speeches()
     print("Task executed.")
 
 @app.route('/')
