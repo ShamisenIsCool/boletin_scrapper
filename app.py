@@ -20,6 +20,7 @@ scheduler.init_app(app)
 @scheduler.task('cron', hour='*/4', id ='scrap')  # Runs every 6 hours
 def scheduled_task():
     scrapper.get_bis_ifcreports() 
+    scrapper.get_report_wb()
     print("Task executed.")
 
 @app.route('/')
