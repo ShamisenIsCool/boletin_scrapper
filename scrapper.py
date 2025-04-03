@@ -1143,6 +1143,7 @@ class Scrapper:
         self.wn.append('World Bank - Working Papers')
         self.websites.append(final)           
 
+        driver.quit()
         return final
     
 
