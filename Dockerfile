@@ -55,4 +55,4 @@ ENV CHROME_PATH=/usr/lib/google-chrome
 #USER appuser
 
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
-CMD ["gunicorn", "--worker-tmp-dir", "/dev/shm", "--bind", "0.0.0.0:8080", "--timeout", "900", "app:app"]
+CMD ["gunicorn", "--worker-tmp-dir", "/dev/shm", "--bind", "0.0.0.0:8080", "--timeout", "900", "--keep-alive", "600", "--graceful-timeout", "900", "--max-requests", "1000", "app:app"]

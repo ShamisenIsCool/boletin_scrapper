@@ -21,15 +21,7 @@ scheduler.init_app(app)
 @scheduler.task('cron', hour='*/4', id ='scrap')  # Runs every 6 hours
 def scheduled_task():
     try: 
-        scrapper.get_report_wb()
-        scrapper.get_bis_ifcreports()
-        scrapper.get_bis_bsbreports()
-        scrapper.get_bis_cpmireports()
-        scrapper.get_bis_cgfsreports()
-        scrapper.get_report_fsb()
-        scrapper.get_fem_reports()
-        scrapper.get_imf_reports()
-        scrapper.get_oecd_reports()
+        scrapper.get_all_reports()
     except Exception as e:
         print(f'Error: {e}')
     print("Task executed.")
