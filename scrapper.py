@@ -51,8 +51,8 @@ class Scrapper:
 
         
     def clear_websites(self):
-        self.websites = list()
-        self.wn = list()
+        self.wn.clear()
+        self.websites.clear()
         
     def close_window(self):
         driver = self.driver

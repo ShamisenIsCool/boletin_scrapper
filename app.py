@@ -18,7 +18,7 @@ scheduler.init_app(app)
 
 
 @scheduler.task('cron', hour='*/4', id ='scrap')  # Runs every 4 hours
-def scheduled_task():
+def scheduled_task(scrapper = scrapper):
     scrapper.clear_websites() #So each time the schedule is executed we dont get duplicated websites.
     scrapper.get_all_reports()
     scrapper.get_all_papers()
@@ -47,7 +47,8 @@ except Exception as e:
 
 if __name__ == "__main__": 
     
-    scheduler.start()
-    print(scheduler.get_job(id='scrap'))
-    scheduler.run_job(id = 'scrap') #just uncomment for testing purposes. It will run the job now instead of the scheduled hour. 
-    app.run(debug=False)
+    #scheduler.start()
+    #print(scheduler.get_job(id='scrap'))
+    #scheduler.run_job(id = 'scrap') #just uncomment for testing purposes. It will run the job now instead of the scheduled hour. 
+    #app.run(debug=False)
+    pass
