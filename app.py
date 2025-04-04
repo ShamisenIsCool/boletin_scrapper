@@ -7,7 +7,6 @@ app = Flask(__name__)
 
 
 scrapper = Scrapper()
-
 websites_names = scrapper.get_webnames()
 
 #scrapper.get_all_reports()
@@ -20,6 +19,7 @@ scheduler.init_app(app)
 
 @scheduler.task('cron', hour='*/4', id ='scrap')  # Runs every 4 hours
 def scheduled_task():
+    scrapper.clear_websites() #So each time the schedule is executed we dont get duplicated websites.
     scrapper.get_all_reports()
     scrapper.get_all_papers()
     scrapper.get_all_speeches()
@@ -37,12 +37,7 @@ def main():
 
 
 
-scheduler.start()
-print(scheduler.get_job(id='scrap'))
-try:
-    scheduler.run_job(id = 'scrap') #just uncomment for testing purposes. It will run the job now instead of the scheduled hour.
-except Exception as e:
-    print(f'Error: {e}') 
+
 
 
 if __name__ == "__main__": 
