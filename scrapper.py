@@ -59,8 +59,8 @@ class Scrapper:
         driver.close()
 
     def quit_browser(self):
-        driver = self.driver
-        driver.quit()
+        self.driver.quit()
+        
     def get_webnames(self):
         return self.wn
 
@@ -1107,7 +1107,7 @@ class Scrapper:
 
 
         for speech in speeches: 
-            for t in range(0,3):
+            for t in range(0,5):
                 print(f'Intento: {t + 1} de la funcion {speech}')
                 try:
                     speech()
@@ -1115,6 +1115,11 @@ class Scrapper:
                     break 
                 except: 
                     print(f'Error en la función: {speech}')
+                    self.reboot_driver()
+                    time.sleep(2)
+                    if t == 4:
+                        print('Intentos agotados.')
+                        return False
         
         print('Speeches extraction completed succesfully.')
 
@@ -1135,7 +1140,7 @@ class Scrapper:
 
 
         for report in reports: 
-            for t in range(0,3):
+            for t in range(0,5):
                 print(f'Intento: {t + 1} de la funcion {report}')
                 try:
                     report()
@@ -1143,6 +1148,11 @@ class Scrapper:
                     break 
                 except Exception as e: 
                     print(f'Error en la función: {report} con error {e}')
+                    self.reboot_driver()
+                    time.sleep(2)
+                    if t == 4:
+                        print('Intentos agotados.')
+                        return False
         
         
         print('Reports extraction completed succesfully.')

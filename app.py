@@ -17,7 +17,7 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 
 
-@scheduler.task('cron', hour='*/3', id ='scrap')  # Runs every 3 hours
+@scheduler.task('cron', hour='*/4', id ='scrap')  # Runs every 3 hours
 def scheduled_task(scrapper = scrapper):
     scrapper.clear_websites() #So each time the schedule is executed we dont get duplicated websites.
     scrapper.get_all_reports()
