@@ -23,6 +23,7 @@ def scheduled_task(scrapper = scrapper):
     scrapper.get_all_reports()
     scrapper.get_all_papers()
     scrapper.get_all_speeches()
+    #scrapper.get_wp_wb()
     print("Task executed.")
 
 @app.route('/')
@@ -39,10 +40,12 @@ def main():
 
 scheduler.start()
 print(scheduler.get_job(id='scrap'))
+
 try:
     scheduler.run_job(id = 'scrap') #just uncomment for testing purposes. It will run the job now instead of the scheduled hour.
 except Exception as e:
     print(f'Error: {e}') 
+
 
 
 if __name__ == "__main__": 

@@ -955,8 +955,9 @@ class Scrapper:
         report_contents = zip(titles, dates, descs)
 
         for title, date, desc in report_contents:
-            if today in date.string[5:7] and 'report' not in desc.string:
-                text, link = title.string, 'https://openknowledge.worldbank.org' + title['href']
+            if today in date.string[5:7] and (not 'report' in desc.string):
+                text = title.string
+                link = 'https://openknowledge.worldbank.org' + title['href']
                 final.append((text,link))
                 #print(title.string, title['href'])
         
@@ -1209,5 +1210,5 @@ class Scrapper:
 
 if __name__ == '__main__':
     h = Scrapper()
-    h.get_wp_oecd()
+    h.get_wp_wb()
 
