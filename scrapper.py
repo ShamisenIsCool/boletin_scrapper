@@ -30,8 +30,9 @@ class Scrapper:
         #self.links_list = links_list
         #self.month = month 
 
-        self.websites = list()
-        self.wn = list()
+        self.websites = list() #list of tuples (title, link)
+        self.wn = list() #list of webnames
+
         options = webdriver.ChromeOptions()
         options.add_argument("--disable-gpu") # Disables hardware acceleration through the GPU (Graphics Processing Unit). This can help avoid certain rendering issues and crashes, especially in headless mode or virtualized environments.
         options.add_argument("--no-sandbox") #  Disables Chrome's sandbox security feature. This speeds things up but reduces security isolation - generally only recommended in controlled environments like testing servers.
@@ -354,8 +355,7 @@ class Scrapper:
 
                 text= i.string
                 link = i.get('href')
-                pair = (text,link)
-                final.append(pair)
+                final.append((text,link))
 
                 #print(text)
 
@@ -1093,6 +1093,39 @@ class Scrapper:
         self.websites.append(final)
 
         return final 
+
+
+    #Private method, not intented to be used outside of class 
+    def _count_websites(self):
+        self.count = 0
+        all_websites = [self.get_bid_workingpapers,
+        self.get_wp_wb,
+        self.get_bis_papers,
+        self.get_bis_workingpapers,
+        self.get_imf_blogs,
+        self.get_imf_wp,
+        self.get_wp_oecd,
+        self.get_speech_bis,
+        self.get_basel_speeches,
+        self.get_bisManagement_speeches,                  
+        self.get_speech_fsb,
+        self.get_speech_imf,
+        self.get_report_wb,
+        self.get_bis_ifcreports,
+        self.get_bis_bsbreports,
+        self.get_bis_cpmireports,
+        self.get_bis_cgfsreports,
+        self.get_report_fsb,
+        self.get_fem_reports,
+        self.get_imf_reports,
+        self.get_oecd_reports
+        #add here any new website added to the scrapper. 
+        ]
+        self.count = len(all_websites)
+
+    def verify_integrity(self): 
+        self._count_websites()
+        return True if len(self.wn) == self.count else False 
 
     #Methods to retrieve websites by category
     #------------------------------------------------------

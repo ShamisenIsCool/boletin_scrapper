@@ -19,12 +19,19 @@ scheduler.init_app(app)
 
 @scheduler.task('cron', hour='*/4', id ='scrap')  # Runs every 3 hours
 def scheduled_task(scrapper = scrapper):
-    scrapper.clear_websites() #So each time the schedule is executed we dont get duplicated websites.
-    scrapper.get_all_reports()
-    scrapper.get_all_papers()
-    scrapper.get_all_speeches()
-    #scrapper.get_wp_wb()
-    print("Task executed.")
+    while True: 
+        scrapper.clear_websites() #So each time the schedule is executed we dont get duplicated websites.
+        scrapper.get_all_reports()
+        scrapper.get_all_papers()
+        scrapper.get_all_speeches()
+    
+        if scrapper.verify_integrity(): 
+            #scrapper.get_wp_wb()
+            print("Task executed.")
+            return 
+        else: 
+            continue
+
 
 @app.route('/')
 def main(): 
