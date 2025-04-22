@@ -9,7 +9,9 @@ flask run
 ```
 Or simply start off the program by running app.py either by using the UI in VS code or executing the python script in the terminal.
 ```python
-python app.py 
+python app.py
+
+python3 app.py #In case the previous command did not work. 
 ```
 You'll be able to preview any progress made by the program directly in the terminal. Be patient. It can take a while so do not stop the script unless an error has occurred. 
 
